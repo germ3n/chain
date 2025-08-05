@@ -20,3 +20,11 @@ impl<T: Encode + Decode<()> + Sized> Serializable for T
         Ok(value)
     }
 }
+
+pub fn to_bytes<T: Encode + Decode<()> + Sized>(value: &T) -> Result<Vec<u8>, Error> {
+    value.to_bytes()
+}
+
+pub fn from_bytes<T: Encode + Decode<()> + Sized>(bytes: &[u8]) -> Result<T, Error> {
+    T::from_bytes(bytes)
+}

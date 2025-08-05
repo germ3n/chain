@@ -1,9 +1,10 @@
 use {
     bincode::{Encode, Decode},
     crate::crypto::hash::{HashAlgorithm, Hash},
-    crate::structs::tx::Tx,
+    crate::structs::tx::{Tx, TxData},
     crate::crypto::keypair::PublicKey,
     crate::crypto::hash::Hashable,
+    anyhow::Error,
 };
 
 #[derive(Encode, Decode, PartialEq, Debug)]
@@ -30,7 +31,7 @@ impl Block {
         block
     }
 
-    pub fn coinbase_block(prev_hash: Hash, miner_pubkey: PublicKey) -> Self {
+    pub fn coinbase(prev_hash: Hash, miner_pubkey: PublicKey) -> Self {
         let mut block = Self {
             hash: Hash::null(),
             prev_hash: prev_hash,
@@ -41,5 +42,36 @@ impl Block {
         };
         block.hash = block.hash(HashAlgorithm::Blake3_256);
         block
+    }
+
+    pub fn ensure_first_tx_is_coinbase(&mut self) -> Result<(), Error> {
+        if !matches!(self.txs[0].data, TxData::Coinbase(_)) {
+            return Err(Error::msg("First tx is not coinbase"));
+        }
+        Ok(())
+    }
+
+    pub fn ensure_single_coinbase(&mut self) -> Result<(), Error> {
+        for tx in self.txs.iter().skip(1) {
+            if matches!(tx.data, TxData::Coinbase(_)) {
+                return Err(Error::msg("Block has more than one coinbase tx"));
+            }
+        }
+        Ok(())
+    }
+}
+
+impl std::fmt::Display for Block {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f, 
+            "Block {{ hash: {}, prev_hash: {}, nonce: {}, miner_pubkey: {}, timestamp: {}, txs: {:?} }}", 
+            self.hash, 
+            self.prev_hash, 
+            self.nonce, 
+            self.miner_pubkey, 
+            self.timestamp, 
+            self.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect::<Vec<_>>()
+        )
     }
 }

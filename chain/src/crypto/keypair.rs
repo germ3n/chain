@@ -13,7 +13,6 @@ use {
     },
     rand_core::OsRng,
     anyhow::Error,
-    std::fmt::Formatter,
     bincode::{Decode, Encode},
     crate::serialize::Serializable,
     crate::crypto::hash::{Hash, HashAlgorithm},
@@ -221,24 +220,38 @@ impl<T: Serializable> Signable for T {
     }
 }
 
-impl std::fmt::Debug for Keypair {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Display for Keypair {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Keypair::Null => {
-                write!(f, "Keypair(Null)")
-            }
-            Keypair::Ed25519(_, verifying_key) => {
-                write!(f, "Keypair(Ed25519, {:?})", verifying_key.to_bytes())
-            }
-            Keypair::EdBlake(_, verifying_key) => {
-                write!(f, "Keypair(EdBlake, {:?})", verifying_key.to_bytes())
-            }
-            Keypair::Secp256k1_Ecdsa(_, verifying_key) => {
-                write!(f, "Keypair(Secp256k1_Ecdsa, {:?})", verifying_key.serialize())
-            }
-            Keypair::Secp256k1_Schnorr(_, verifying_key) => {
-                write!(f, "Keypair(Secp256k1_Schnorr, {:?})", verifying_key.serialize())
-            }
+            Keypair::Null => write!(f, "Keypair(Null)"),
+            Keypair::Ed25519(_, verifying_key) => write!(f, "Keypair(Ed25519, 0x{})", hex::encode(verifying_key.to_bytes())),
+            Keypair::EdBlake(_, verifying_key) => write!(f, "Keypair(EdBlake, 0x{})", hex::encode(verifying_key.to_bytes())),
+            Keypair::Secp256k1_Ecdsa(_, verifying_key) => write!(f, "Keypair(Secp256k1_Ecdsa, 0x{})", hex::encode(verifying_key.serialize())),
+            Keypair::Secp256k1_Schnorr(_, verifying_key) => write!(f, "Keypair(Secp256k1_Schnorr, 0x{})", hex::encode(verifying_key.serialize())),
+        }
+    }
+}
+
+impl std::fmt::Display for PublicKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PublicKey::Null => write!(f, "PublicKey(Null)"),
+            PublicKey::Ed25519(pubkey) => write!(f, "PublicKey(Ed25519, 0x{})", hex::encode(pubkey)),
+            PublicKey::EdBlake(pubkey) => write!(f, "PublicKey(EdBlake, 0x{})", hex::encode(pubkey)),
+            PublicKey::Secp256k1_Ecdsa(pubkey) => write!(f, "PublicKey(Secp256k1_Ecdsa, 0x{})", hex::encode(pubkey)),
+            PublicKey::Secp256k1_Schnorr(pubkey) => write!(f, "PublicKey(Secp256k1_Schnorr, 0x{})", hex::encode(pubkey)),
+        }
+    }
+}
+
+impl std::fmt::Display for Signature {  
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Signature::Null => write!(f, "Signature(Null)"),
+            Signature::Ed25519(signature) => write!(f, "Signature(Ed25519, 0x{})", hex::encode(signature)),
+            Signature::EdBlake(signature) => write!(f, "Signature(EdBlake, 0x{})", hex::encode(signature)),
+            Signature::Secp256k1_Ecdsa(signature) => write!(f, "Signature(Secp256k1_Ecdsa, 0x{})", hex::encode(signature)),
+            Signature::Secp256k1_Schnorr(signature) => write!(f, "Signature(Secp256k1_Schnorr, 0x{})", hex::encode(signature)),
         }
     }
 }

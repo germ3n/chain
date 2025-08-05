@@ -6,6 +6,8 @@ pub mod context;
 pub mod consensus;
 pub mod crypto;
 pub mod serialize;
+pub mod vm;
+pub mod mempool;
 
 use {
     clap::Parser,
@@ -28,7 +30,7 @@ fn main() {
     info!("Initializing context");
     CTX.get_or_init(|| {
         let db = TransactionRocksDB::open(&"db").expect("Failed to open database");
-        Context::new(Arc::new(db))
+        Context::new_with_evm(Arc::new(db))
     });
 
     info!("Context initialized");

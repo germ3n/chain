@@ -33,7 +33,7 @@ impl Tx {
     pub fn coinbase() -> Self {
         Self {
             header: TxHeader {
-                sender: ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").get_pubkey().expect("Invalid pubkey"),
+                sender: crate::crypto::keypair::PublicKey::Ed25519([0; 32]), //ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").get_pubkey().expect("Invalid pubkey"),
                 signature: None,
             },
             data: TxData::Coinbase(TxCoinbaseData {
@@ -50,9 +50,37 @@ impl Tx {
 
     pub fn verify(&self, keypair: Keypair) -> Result<(), Error> {
         match &self.header.signature {
-            Some(signature) => signature.verify(&keypair, self.to_bytes()?.as_slice())?,
+            Some(signature) => signature.verify(&keypair, self.to_bytes()?.as_slice()),
             None => return Err(anyhow::Error::msg("No signature")),
         }
-        Ok(())
+    }
+}
+
+impl std::fmt::Display for Tx {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Tx {{ header: {}, data: {} }}", self.header, self.data)
+    }
+}
+
+impl std::fmt::Display for TxHeader {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.signature {
+            Some(signature) => write!(f, "TxHeader {{ sender: {}, signature: {} }}", self.sender, signature),
+            None => write!(f, "TxHeader {{ sender: {}, signature: None }}", self.sender),
+        }
+    }
+}
+
+impl std::fmt::Display for TxData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TxData::Coinbase(data) => write!(f, "TxData::Coinbase({})", data.amount),
+        }
+    }
+}
+
+impl std::fmt::Display for TxCoinbaseData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TxCoinbaseData {{ amount: {} }}", self.amount)
     }
 }

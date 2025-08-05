@@ -9,7 +9,7 @@ pub enum HashAlgorithm {
     Blake3_512,
 }
 
-#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, Hash)]
 pub enum Hash {
     Null,
     Blake3_256([u8; 32]),
@@ -31,6 +31,16 @@ impl Hash {
             HashAlgorithm::Blake3_512 => {
                 panic!("Blake3_512 not implemented");
             }
+        }
+    }
+}
+
+impl std::fmt::Display for Hash {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Hash::Null => write!(f, "null"),
+            Hash::Blake3_256(hash) => write!(f, "{}", hex::encode(hash)),
+            Hash::Blake3_512(hash) => write!(f, "{}", hex::encode(hash)),
         }
     }
 }
