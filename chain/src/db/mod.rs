@@ -1,0 +1,21 @@
+pub mod rocksdb;
+
+use {
+    anyhow::Error,
+    std::any::Any,
+};
+
+pub trait DatabaseTrait {
+    fn open(options: &dyn Any) -> Result<Self, Error> where Self: Sized;
+    fn get_raw_bytes(&self, key: &[u8]) -> Result<Option<Vec<u8>>, Error>;
+    fn put_raw_bytes(&self, key: &[u8], value: &[u8]) -> Result<(), Error>;
+    fn with_transaction<F>(&self, f: F) -> Result<(), Error>
+    where F: FnOnce(&mut dyn TransactionTrait) -> Result<(), Error>;
+}
+
+pub trait TransactionTrait {
+    fn get_raw_bytes(&self, key: &[u8]) -> Result<Option<Vec<u8>>, Error>;
+    fn put_raw_bytes(&self, key: &[u8], value: &[u8]) -> Result<(), Error>;
+    fn commit(&mut self) -> Result<(), Error>;
+    fn rollback(&mut self) -> Result<(), Error>;
+}
