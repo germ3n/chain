@@ -51,6 +51,8 @@ impl Mempool {
 
 impl std::fmt::Display for Mempool {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Mempool {{ txs: {:?} }}", self.txs.read().unwrap().iter().map(|(hash, tx)| format!("0x{}: {}", hash, tx)).collect::<Vec<_>>())
+        write!(f, "Mempool {{ txs: {{ {} }} }}", 
+            self.txs.read().unwrap().iter().map(|(hash, tx)| format!("0x{}: 0x{}", hash, tx.hash(HashAlgorithm::Blake3_256))).collect::<Vec<_>>().join(", ")
+        )
     }
 }

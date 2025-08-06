@@ -3,7 +3,7 @@ use {
     bincode::{Decode, Encode}, 
     crate::crypto::keypair::{Keypair, PublicKey, Signature},
     anyhow::Error,
-    crate::serialize::Serializable,
+    crate::serialize::binary::SerializableBytes,
 };
 
 #[derive(Encode, Decode, PartialEq, Debug)]
@@ -33,7 +33,7 @@ impl Tx {
     pub fn coinbase() -> Self {
         Self {
             header: TxHeader {
-                sender: crate::crypto::keypair::PublicKey::Ed25519([0; 32]), //ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").get_pubkey().expect("Invalid pubkey"),
+                sender: ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"),
                 signature: None,
             },
             data: TxData::Coinbase(TxCoinbaseData {

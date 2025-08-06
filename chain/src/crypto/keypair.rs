@@ -14,16 +14,21 @@ use {
     rand_core::OsRng,
     anyhow::Error,
     bincode::{Decode, Encode},
-    crate::serialize::Serializable,
+    crate::serialize::binary::SerializableBytes,
     crate::crypto::hash::{Hash, HashAlgorithm},
+    crate::structs::account::{Account, Address},
 };
 
 #[repr(u8)]
 pub enum Keypair {
     Null = 0,
+    #[cfg(feature = "ed25519")]
     Ed25519(Ed25519SigningKey, Ed25519VerifyingKey) = 1,
+    #[cfg(feature = "edblake")]
     EdBlake(EdBlakeExpandedSecretKey, EdBlakePublicKey) = 2,
+    #[cfg(feature = "secp256k1")]
     Secp256k1_Ecdsa(Secp256k1SecretKey, Secp256k1PublicKey) = 3,
+    #[cfg(feature = "secp256k1")]
     Secp256k1_Schnorr(Secp256k1SecretKey, Secp256k1PublicKey) = 4,
 }
 
@@ -31,9 +36,13 @@ pub enum Keypair {
 #[repr(u8)]
 pub enum PublicKey {
     Null = 0,
+    #[cfg(feature = "ed25519")]
     Ed25519([u8; 32]) = 1,
+    #[cfg(feature = "edblake")]
     EdBlake([u8; 32]) = 2,
+    #[cfg(feature = "secp256k1")]
     Secp256k1_Ecdsa([u8; 32]) = 3,
+    #[cfg(feature = "secp256k1")]
     Secp256k1_Schnorr([u8; 32]) = 4,
 }
 
@@ -41,9 +50,13 @@ pub enum PublicKey {
 #[repr(u8)]
 pub enum Signature {
     Null = 0,
+    #[cfg(feature = "ed25519")]
     Ed25519([u8; 64]) = 1,
+    #[cfg(feature = "edblake")]
     EdBlake([u8; 64]) = 2,
+    #[cfg(feature = "secp256k1")]
     Secp256k1_Ecdsa([u8; 64]) = 3,
+    #[cfg(feature = "secp256k1")]
     Secp256k1_Schnorr([u8; 64]) = 4,
 }
 
@@ -52,6 +65,7 @@ impl Keypair {
         Keypair::Null
     }
 
+    #[cfg(feature = "ed25519")]
     pub fn new_ed25519() -> Result<Self, Error> {
         let mut csprng = OsRng;
         let signing_key = Ed25519SigningKey::generate(&mut csprng);
@@ -59,12 +73,14 @@ impl Keypair {
         Ok(Keypair::Ed25519(signing_key, verifying_key))
     }
 
+    #[cfg(feature = "edblake")]
     pub fn new_edblake() -> Result<Self, Error> {
         let mut csprng = OsRng;
         let keypair = EdBlakeKeypair::generate(&mut csprng);
         Ok(Keypair::EdBlake(EdBlakeExpandedSecretKey::from(&keypair.secret), keypair.public))
     }
 
+    #[cfg(feature = "secp256k1")]
     pub fn new_secp256k1_ecdsa() -> Result<Self, Error> {
         //let mut csprng = OsRng;
         //let (secret_key, public_key) = secp256k1_generate_keypair(&mut csprng);
@@ -72,6 +88,7 @@ impl Keypair {
         Err(Error::msg("Not implemented"))
     }
 
+    #[cfg(feature = "secp256k1")]
     pub fn new_secp256k1_schnorr() -> Result<Self, Error> {
         Err(Error::msg("Not implemented"))
     }
@@ -79,17 +96,20 @@ impl Keypair {
     pub fn sign(&self, message: &[u8]) -> Result<Signature, Error> {
         match self {
             Keypair::Null => Err(Error::msg("Null keypair")),
+            #[cfg(feature = "ed25519")]
             Keypair::Ed25519(signing_key, _) => {
                 let signature = Signature::Ed25519(signing_key.sign(message).to_bytes());
                 signature.verify(self, message)?;
                 Ok(signature)
             }
+            #[cfg(feature = "edblake")]
             Keypair::EdBlake(_signing_key, _verifying_key) => {
                 //let signature = Signature::EdBlake(signing_key.sign(message, verifying_key).to_bytes());
                 //signature.verify(self, message)?;
                 //Ok(signature)
                 Err(Error::msg("Not implemented"))
             }
+            #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Ecdsa(signing_key, _) => {
                 let hash = Hash::with_hasher(HashAlgorithm::Blake3_256, |hasher: &mut dyn std::io::Write| {
                     hasher.write(message).unwrap();
@@ -103,21 +123,30 @@ impl Keypair {
                 let signature = SECP256K1.sign_ecdsa(message, &signing_key);
                 Ok(Signature::Secp256k1_Ecdsa(signature.serialize_der().to_vec().try_into().unwrap()))
             }
+            #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Schnorr(_, _) => {
                 Err(Error::msg("Not implemented"))
             }
         }
     }
 
-    pub fn get_pubkey(&self) -> Result<PublicKey, Error> {
+    pub fn pubkey(&self) -> Result<PublicKey, Error> {
         match self {
             Keypair::Null => Ok(PublicKey::Null),
+            #[cfg(feature = "ed25519")]
             Keypair::Ed25519(_, verifying_key) => Ok(PublicKey::Ed25519(verifying_key.to_bytes())),
+            #[cfg(feature = "edblake")]
             Keypair::EdBlake(_, verifying_key) => Ok(PublicKey::EdBlake(verifying_key.to_bytes())),
+            //#[cfg(feature = "secp256k1")]
             //Keypair::Secp256k1_Ecdsa(_, verifying_key) => PublicKey::Secp256k1_Ecdsa(verifying_key.serialize()),
+            //#[cfg(feature = "secp256k1")]
             //Keypair::Secp256k1_Schnorr(_, verifying_key) => PublicKey::Secp256k1_Schnorr(verifying_key.serialize()),
             _ => Err(Error::msg("Invalid keypair")),
         }
+    }
+
+    pub fn address(&self) -> Result<Address, Error> {
+        Account::address_from_pubkey(&self.pubkey()?)
     }
 }
 
@@ -129,6 +158,7 @@ impl Signature {
     pub fn verify(&self, keypair: &Keypair, message: &[u8]) -> Result<(), Error> {
         match keypair {
             Keypair::Null => Err(Error::msg("Null keypair")),
+            #[cfg(feature = "ed25519")]
             Keypair::Ed25519(_, verifying_key) => {
                 match self {
                     Signature::Ed25519(signature) => {
@@ -138,6 +168,7 @@ impl Signature {
                     _ => Err(Error::msg("Invalid signature")),
                 }
             }
+            #[cfg(feature = "edblake")]
             Keypair::EdBlake(_, verifying_key) => {
                 match self {
                     Signature::EdBlake(signature) => {
@@ -147,6 +178,7 @@ impl Signature {
                     _ => Err(Error::msg("Invalid signature")),
                 }
             }
+            #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Ecdsa(_, verifying_key) => {
                 match self {
                     Signature::Secp256k1_Ecdsa(signature) => {
@@ -164,6 +196,7 @@ impl Signature {
                     _ => Err(Error::msg("Invalid signature")),
                 }
             }
+            #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Schnorr(_, _) => {
                 Err(Error::msg("Not implemented"))
             }
@@ -177,7 +210,7 @@ impl PublicKey {
     }
 }
 
-impl Serializable for Keypair {
+impl SerializableBytes for Keypair {
     fn to_bytes(&self) -> Result<Vec<u8>, Error> {
         match self {
             Keypair::Null => Ok(vec![]),
@@ -206,17 +239,11 @@ impl Serializable for Keypair {
 
 pub trait Signable {
     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error>;
-    fn verify(&self, keypair: &Keypair) -> Result<(), Error>;
 }
 
-impl<T: Serializable> Signable for T {
+impl<T: SerializableBytes> Signable for T {
     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error> {
         keypair.sign(self.to_bytes()?.as_slice())
-    }
-
-    fn verify(&self, _keypair: &Keypair) -> Result<(), Error> {
-        //keypair.verify(self.to_bytes()?.as_slice())
-        Err(Error::msg("Not implemented"))
     }
 }
 
@@ -224,9 +251,13 @@ impl std::fmt::Display for Keypair {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Keypair::Null => write!(f, "Keypair(Null)"),
+            #[cfg(feature = "ed25519")]
             Keypair::Ed25519(_, verifying_key) => write!(f, "Keypair(Ed25519, 0x{})", hex::encode(verifying_key.to_bytes())),
+            #[cfg(feature = "edblake")]
             Keypair::EdBlake(_, verifying_key) => write!(f, "Keypair(EdBlake, 0x{})", hex::encode(verifying_key.to_bytes())),
+            #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Ecdsa(_, verifying_key) => write!(f, "Keypair(Secp256k1_Ecdsa, 0x{})", hex::encode(verifying_key.serialize())),
+            #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Schnorr(_, verifying_key) => write!(f, "Keypair(Secp256k1_Schnorr, 0x{})", hex::encode(verifying_key.serialize())),
         }
     }
@@ -236,9 +267,13 @@ impl std::fmt::Display for PublicKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             PublicKey::Null => write!(f, "PublicKey(Null)"),
+            #[cfg(feature = "ed25519")]
             PublicKey::Ed25519(pubkey) => write!(f, "PublicKey(Ed25519, 0x{})", hex::encode(pubkey)),
+            #[cfg(feature = "edblake")]
             PublicKey::EdBlake(pubkey) => write!(f, "PublicKey(EdBlake, 0x{})", hex::encode(pubkey)),
+            #[cfg(feature = "secp256k1")]
             PublicKey::Secp256k1_Ecdsa(pubkey) => write!(f, "PublicKey(Secp256k1_Ecdsa, 0x{})", hex::encode(pubkey)),
+            #[cfg(feature = "secp256k1")]
             PublicKey::Secp256k1_Schnorr(pubkey) => write!(f, "PublicKey(Secp256k1_Schnorr, 0x{})", hex::encode(pubkey)),
         }
     }
@@ -248,9 +283,13 @@ impl std::fmt::Display for Signature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Signature::Null => write!(f, "Signature(Null)"),
+            #[cfg(feature = "ed25519")]
             Signature::Ed25519(signature) => write!(f, "Signature(Ed25519, 0x{})", hex::encode(signature)),
+            #[cfg(feature = "edblake")]
             Signature::EdBlake(signature) => write!(f, "Signature(EdBlake, 0x{})", hex::encode(signature)),
+            #[cfg(feature = "secp256k1")]
             Signature::Secp256k1_Ecdsa(signature) => write!(f, "Signature(Secp256k1_Ecdsa, 0x{})", hex::encode(signature)),
+            #[cfg(feature = "secp256k1")]
             Signature::Secp256k1_Schnorr(signature) => write!(f, "Signature(Secp256k1_Schnorr, 0x{})", hex::encode(signature)),
         }
     }
@@ -259,9 +298,12 @@ impl std::fmt::Display for Signature {
 impl std::cmp::PartialEq for Keypair {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
+            (Keypair::Null, Keypair::Null) => true,
+            #[cfg(feature = "ed25519")]
             (Keypair::Ed25519(_, verifying_key), Keypair::Ed25519(_, other_verifying_key)) => {
                 verifying_key.to_bytes() == other_verifying_key.to_bytes()
             }
+            #[cfg(feature = "edblake")]
             (Keypair::EdBlake(_, verifying_key), Keypair::EdBlake(_, other_verifying_key)) => {
                 verifying_key.to_bytes() == other_verifying_key.to_bytes()
             }

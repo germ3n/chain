@@ -6,13 +6,14 @@ use {
     std::any::Any,
     crate::db::DatabaseTrait,
     std::sync::Arc,
+    crate::vm::contract::ContractTrait,
 };
 
 pub struct EVM<D: DatabaseTrait> {
     pub state: Option<Arc<EVMState<D>>>,
 }
 
-impl<D: DatabaseTrait + 'static> VMTrait for EVM<D> {
+impl<D: DatabaseTrait + 'static> VMTrait<D> for EVM<D> {
     fn init(&self) -> Result<(), Error> {
         Ok(())
     }
@@ -52,7 +53,7 @@ impl<D: DatabaseTrait + 'static> VMTrait for EVM<D> {
         Ok(Hash::null())
     }
 
-    fn get_contract(&self, _hash: &Hash) -> Result<Option<&dyn Any>, Error> {
+    fn get_contract(&self, _hash: &Hash) -> Result<Option<&dyn ContractTrait<D>>, Error> {
         //Err(Error::msg("Not implemented"))
         Ok(None)
     }

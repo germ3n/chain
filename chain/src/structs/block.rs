@@ -2,7 +2,6 @@ use {
     bincode::{Encode, Decode},
     crate::crypto::hash::{HashAlgorithm, Hash},
     crate::structs::tx::{Tx, TxData},
-    crate::crypto::keypair::PublicKey,
     crate::crypto::hash::Hashable,
     anyhow::Error,
 };
@@ -12,7 +11,6 @@ pub struct Block {
     pub hash: Hash,
     pub prev_hash: Hash,
     pub nonce: u64,
-    pub miner_pubkey: PublicKey,
     pub timestamp: u64,
     pub txs: Vec<Tx>,
 }
@@ -23,7 +21,6 @@ impl Block {
             hash: Hash::null(),
             prev_hash: Hash::null(),
             nonce: 0,
-            miner_pubkey: PublicKey::null(),
             timestamp: 0,
             txs: vec![],
         };
@@ -31,12 +28,11 @@ impl Block {
         block
     }
 
-    pub fn coinbase(prev_hash: Hash, miner_pubkey: PublicKey) -> Self {
+    pub fn coinbase(prev_hash: Hash) -> Self {
         let mut block = Self {
             hash: Hash::null(),
             prev_hash: prev_hash,
             nonce: 0,
-            miner_pubkey: miner_pubkey,
             timestamp: 0,
             txs: vec![Tx::coinbase()],
         };
@@ -44,18 +40,28 @@ impl Block {
         block
     }
 
-    pub fn ensure_first_tx_is_coinbase(&mut self) -> Result<(), Error> {
+    pub fn ensure_first_tx_is_coinbase(&self) -> Result<(), Error> {
         if !matches!(self.txs[0].data, TxData::Coinbase(_)) {
             return Err(Error::msg("First tx is not coinbase"));
         }
         Ok(())
     }
 
-    pub fn ensure_single_coinbase(&mut self) -> Result<(), Error> {
+    pub fn ensure_single_coinbase(&self) -> Result<(), Error> {
         for tx in self.txs.iter().skip(1) {
             if matches!(tx.data, TxData::Coinbase(_)) {
                 return Err(Error::msg("Block has more than one coinbase tx"));
             }
+        }
+        Ok(())
+    }
+
+    pub fn validate(&self) -> Result<(), Error> {
+        self.ensure_first_tx_is_coinbase()?;
+        self.ensure_single_coinbase()?;
+        let calculated_hash = self.hash(HashAlgorithm::Blake3_256);
+        if self.hash != calculated_hash {
+            return Err(Error::msg("Block hash does not match calculated hash"));
         }
         Ok(())
     }
@@ -65,13 +71,12 @@ impl std::fmt::Display for Block {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f, 
-            "Block {{ hash: {}, prev_hash: {}, nonce: {}, miner_pubkey: {}, timestamp: {}, txs: {:?} }}", 
+            "Block {{ hash: 0x{}, prev_hash: 0x{}, nonce: {}, timestamp: {}, txs: {{ {} }} }}", 
             self.hash, 
             self.prev_hash, 
             self.nonce, 
-            self.miner_pubkey, 
             self.timestamp, 
-            self.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect::<Vec<_>>()
+            self.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect::<Vec<_>>().into_iter().map(|hash| format!("0x{}", hash)).collect::<Vec<_>>().join(", ")
         )
     }
 }

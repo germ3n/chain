@@ -6,7 +6,8 @@ use {
     anyhow::Error,
     crate::vm::VMTrait,
     crate::crypto::hash::{Hashable, HashAlgorithm},
-    crate::serialize::to_bytes,
+    crate::serialize::binary::to_bytes,
+    crate::crypto::keypair::Signable,
 };
 
 pub fn main_loop() -> Result<(), Error> {
@@ -23,13 +24,13 @@ pub fn main_loop() -> Result<(), Error> {
             info!("Mempool tx: 0x{}: {}", hash, tx);
         });
 
-        let block = Block::coinbase(
-            ctx!(curr_top).read().unwrap().clone(), 
-            crate::crypto::keypair::PublicKey::Ed25519([0; 32]) //ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").get_pubkey().expect("Invalid pubkey")
-        );
+        let mut block = Block::coinbase(ctx!(curr_top).read().unwrap().clone());
+        block.ensure_first_tx_is_coinbase()?;
+        block.ensure_single_coinbase()?;
 
         ctx!(db).with_transaction(|tx| {
             tx.put_raw_bytes(b"block_height", to_bytes(&block_height)?.as_slice())?;
+            block.txs[0].header.signature = Some(block.txs[0].sign(ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair"))?);
 
             for vm in ctx!(vms).read().unwrap().iter() {
                 vm.prepare_execution()?;
@@ -52,7 +53,7 @@ pub fn main_loop() -> Result<(), Error> {
             Ok(())
         })?;
 
-        info!("Block mined, pubkey: {}", crate::crypto::keypair::PublicKey::Ed25519([0; 32]));//ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").get_pubkey().expect("Invalid pubkey"));
+        info!("Block mined, pubkey: {}: {}", ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"), block);
         ctx!(block_height).store(block_height + 1, Ordering::Relaxed);
 
         ctx!(mempool).remove_txs(block.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect());
