@@ -14,13 +14,13 @@ pub trait DeserializableJSON {
 
 impl<T: Serialize> SerializableJSON for T {
     fn to_json(&self) -> Result<String, Error> {
-        serde_json::to_string(self).map_err(anyhow::Error::msg)
+        serde_json::to_string(self).map_err(Error::new)
     }
 }
 
 impl<T: for<'a> Deserialize<'a>> DeserializableJSON for T {
     fn from_json(json: &str) -> Result<Self, Error> {
-        serde_json::from_str(json).map_err(anyhow::Error::msg)
+        serde_json::from_str(json).map_err(Error::new)
     }
 }
 

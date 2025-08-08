@@ -1,15 +1,16 @@
 use {
     crate::{ctx}, 
     bincode::{Decode, Encode}, 
-    crate::crypto::keypair::{Keypair, PublicKey, Signature},
+    crate::crypto::keypair::{Keypair, PublicKey, Signature, SignableBytes},
     anyhow::Error,
-    crate::serialize::binary::SerializableBytes,
+    crate::serialize::binary::to_bytes,
 };
 
 #[derive(Encode, Decode, PartialEq, Debug)]
 pub struct TxHeader {
-    pub sender: PublicKey,
     pub signature: Option<Signature>,
+    pub version: TxVersion,
+    pub sender: PublicKey,
 }
 
 #[derive(Encode, Decode, PartialEq, Debug)]
@@ -29,11 +30,18 @@ pub struct TxCoinbaseData {
     pub amount: u128,
 }
 
+#[derive(Encode, Decode, PartialEq, Debug)]
+#[repr(u32)]
+pub enum TxVersion {
+    V1 = 0,
+}
+
 impl Tx {
     pub fn coinbase() -> Self {
         Self {
             header: TxHeader {
                 sender: ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"),
+                version: TxVersion::V1,
                 signature: None,
             },
             data: TxData::Coinbase(TxCoinbaseData {
@@ -43,16 +51,26 @@ impl Tx {
     }
 
     pub fn sign(&mut self, keypair: Keypair) -> Result<(), Error> {
-        self.header.signature = Some(keypair.sign(self.to_bytes()?.as_slice())?);
-        self.header.signature.as_ref().unwrap().verify(&keypair, self.to_bytes()?.as_slice())?;
+        self.header.signature = Some(keypair.sign(self.to_signable_bytes()?.as_slice())?);
+        //self.header.signature.as_ref().unwrap().verify(&keypair, self.to_bytes()?.as_slice())?;
         Ok(())
     }
 
     pub fn verify(&self, keypair: Keypair) -> Result<(), Error> {
         match &self.header.signature {
-            Some(signature) => signature.verify(&keypair, self.to_bytes()?.as_slice()),
+            Some(signature) => signature.verify(&keypair, self.to_signable_bytes()?.as_slice()),
             None => return Err(anyhow::Error::msg("No signature")),
         }
+    }
+}
+
+impl SignableBytes for Tx {
+    fn to_signable_bytes(&self) -> Result<Vec<u8>, Error> {
+        to_bytes(&(
+            &self.header.sender, 
+            &self.header.version, 
+            &self.data
+        ))
     }
 }
 

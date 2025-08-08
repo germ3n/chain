@@ -18,8 +18,8 @@ pub struct Transaction<'a> {
 }
 
 impl DatabaseTrait for RocksDB {
-    fn open(options: &dyn Any) -> Result<Self, Error> {
-        let path = options.downcast_ref::<String>().ok_or(Error::msg("Invalid options"))?;
+    fn open(options: &[&dyn Any]) -> Result<Self, Error> {
+        let path = options[0].downcast_ref::<&str>().ok_or(Error::msg("Invalid options"))?;
         let mut opts = Options::default();
         opts.create_if_missing(true);
         let db = DB::open(&opts, path)?;
@@ -36,15 +36,14 @@ impl DatabaseTrait for RocksDB {
         Ok(())
     }
 
-    fn with_transaction<F>(&self, _f: F) -> Result<(), Error>
-    where F: FnOnce(&mut dyn TransactionTrait) -> Result<(), Error> {
+    fn with_transaction(&self, _f: impl FnOnce(&mut dyn TransactionTrait) -> Result<(), Error>) -> Result<(), Error> {
         Err(Error::msg("Not implemented"))
     }
 }
 
 impl DatabaseTrait for TransactionRocksDB {
-    fn open(options: &dyn Any) -> Result<Self, Error> {
-        let path = options.downcast_ref::<&str>().ok_or(Error::msg("Invalid options"))?;
+    fn open(options: &[&dyn Any]) -> Result<Self, Error> {
+        let path = options[0].downcast_ref::<&str>().ok_or(Error::msg("Invalid options"))?;
         let mut opts = Options::default();
         opts.create_if_missing(true);
         let tx_opts = TransactionDBOptions::default();
@@ -62,8 +61,7 @@ impl DatabaseTrait for TransactionRocksDB {
         Ok(())
     }
 
-    fn with_transaction<F>(&self, f: F) -> Result<(), Error>
-    where F: FnOnce(&mut dyn TransactionTrait) -> Result<(), Error> {
+    fn with_transaction(&self, f: impl FnOnce(&mut dyn TransactionTrait) -> Result<(), Error>) -> Result<(), Error> {
         let tx = self.db.transaction();
         let mut transaction = Transaction { tx: Some(tx) };
         

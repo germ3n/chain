@@ -14,7 +14,7 @@ use {
     rand_core::OsRng,
     anyhow::Error,
     bincode::{Decode, Encode},
-    crate::serialize::binary::SerializableBytes,
+    crate::serialize::binary::{SerializableBytes, DeserializableBytes},
     crate::crypto::hash::{Hash, HashAlgorithm},
     crate::structs::account::{Account, Address},
 };
@@ -137,11 +137,10 @@ impl Keypair {
             Keypair::Ed25519(_, verifying_key) => Ok(PublicKey::Ed25519(verifying_key.to_bytes())),
             #[cfg(feature = "edblake")]
             Keypair::EdBlake(_, verifying_key) => Ok(PublicKey::EdBlake(verifying_key.to_bytes())),
-            //#[cfg(feature = "secp256k1")]
-            //Keypair::Secp256k1_Ecdsa(_, verifying_key) => PublicKey::Secp256k1_Ecdsa(verifying_key.serialize()),
-            //#[cfg(feature = "secp256k1")]
-            //Keypair::Secp256k1_Schnorr(_, verifying_key) => PublicKey::Secp256k1_Schnorr(verifying_key.serialize()),
-            _ => Err(Error::msg("Invalid keypair")),
+            #[cfg(feature = "secp256k1")]
+            Keypair::Secp256k1_Ecdsa(_, _) => Err(Error::msg("Not implemented")),
+            #[cfg(feature = "secp256k1")]
+            Keypair::Secp256k1_Schnorr(_, _) => Err(Error::msg("Not implemented")),
         }
     }
 
@@ -227,7 +226,9 @@ impl SerializableBytes for Keypair {
             _ => Err(Error::msg("Invalid keypair")),
         }
     }
+}
 
+impl DeserializableBytes for Keypair {
     fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
         match bytes[0] {
             0/*Keypair::Null as u8*/ => Ok(Keypair::Null),
@@ -241,11 +242,21 @@ pub trait Signable {
     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error>;
 }
 
-impl<T: SerializableBytes> Signable for T {
+impl<T: SerializableBytes + SignableBytes> Signable for T {
     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error> {
-        keypair.sign(self.to_bytes()?.as_slice())
+        keypair.sign(self.to_signable_bytes()?.as_slice())
     }
 }
+
+pub trait SignableBytes {
+    fn to_signable_bytes(&self) -> Result<Vec<u8>, Error>;
+}
+
+/*impl<T: SerializableBytes> SignableBytes for T {
+    fn to_signable_bytes(&self) -> Result<Vec<u8>, Error> {
+        self.to_bytes()
+    }
+}*/
 
 impl std::fmt::Display for Keypair {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

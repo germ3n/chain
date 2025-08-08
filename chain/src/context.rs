@@ -1,44 +1,50 @@
 use {
     crate::{
-        db::{DatabaseTrait, rocksdb::TransactionRocksDB},
         crypto::keypair::Keypair,
         vm::{VMTrait, evm::EVM, lvm::LVM},
         crypto::hash::Hash,
         mempool::Mempool,
         config::Config,
     },
-    std::sync::{Arc, OnceLock, atomic::{AtomicU64, Ordering}, RwLock},
+    std::sync::{Arc, OnceLock, atomic::{AtomicU64, AtomicU32, Ordering}, RwLock},
 };
 
-pub struct Context<D: DatabaseTrait, VM: VMTrait<D> + Send + Sync> {
-    pub db: Arc<D>,
+#[cfg(feature = "rpc-json")]
+use crate::rpc::json::JsonRpc;
+
+pub struct Context {
     pub miner_keypair: RwLock<Option<Keypair>>,
     pub block_height: AtomicU64,
     pub curr_top: RwLock<Hash>,
     pub curr_circulating_supply: RwLock<u128>,
     pub issued_supply: RwLock<u128>,
     pub total_burned_supply: RwLock<u128>,
-    pub vms: RwLock<Vec<Arc<VM>>>,
+    pub difficulty: AtomicU32,
+    pub vms: RwLock<Vec<Arc<Box<dyn VMTrait + Send + Sync>>>>,
     pub mempool: Mempool,
     pub config: Config,
+    #[cfg(feature = "rpc-json")]
+    pub rpc: JsonRpc,
 }
 
-impl<D: DatabaseTrait, VM: VMTrait<D> + Send + Sync> Context<D, VM> {
-    pub fn new(db: Arc<D>, vm: Option<Arc<VM>>, config: Config) -> Self {
+impl Context {
+    pub fn new(vm: Option<Arc<Box<dyn VMTrait + Send + Sync>>>, config: Config) -> Self {
         Self { 
-            db, 
             block_height: AtomicU64::new(0),
             miner_keypair: RwLock::new(None),
             curr_top: RwLock::new(Hash::null()),
             curr_circulating_supply: RwLock::new(0),
             issued_supply: RwLock::new(0),
             total_burned_supply: RwLock::new(0),
+            difficulty: AtomicU32::new(0),
             vms: RwLock::new(match vm {
                 Some(vm) => vec![vm],
                 None => vec![],
             }),
             mempool: Mempool::new(),
             config,
+            #[cfg(feature = "rpc-json")]
+            rpc: JsonRpc::new(),
         }
     }
 
@@ -48,28 +54,25 @@ impl<D: DatabaseTrait, VM: VMTrait<D> + Send + Sync> Context<D, VM> {
 }
 
 #[cfg(feature = "evm")]
-impl<D: DatabaseTrait + Send + Sync + 'static> Context<D, EVM<D>> {
-    pub fn new_with_evm(db: Arc<D>, config: Config) -> Self {
-        Self::new(db.clone(), Some(Arc::new(EVM::new(db.clone()))), config)
+impl Context {
+    pub fn new_with_evm(config: Config) -> Self {
+        Self::new(Some(Arc::new(Box::new(EVM::new()))), config)
     }
 }
 
 #[cfg(feature = "lvm")]
-impl<D: DatabaseTrait + Send + Sync> Context<D, LVM<D>> {
-    pub fn new_with_lvm(db: Arc<D>, config: Config) -> Self {
-        Self::new(db.clone(), Some(Arc::new(LVM::new(db.clone()))), config)
+impl Context {
+    pub fn new_with_lvm(config: Config) -> Self {
+        Self::new(Some(Arc::new(Box::new(LVM::new()))), config)
     }
 }
 
-pub static CTX: OnceLock<Context<TransactionRocksDB, EVM<TransactionRocksDB>>> = OnceLock::new();
+pub static CTX: OnceLock<Context> = OnceLock::new();
 
 #[macro_export]
 macro_rules! ctx {
     () => {
         $crate::context::CTX.get().expect("Context not initialized")
-    };
-    (db) => {
-        ctx!().db.as_ref()
     };
     ($key:ident) => {
         ctx!().$key

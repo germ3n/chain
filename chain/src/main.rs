@@ -9,19 +9,23 @@ pub mod crypto;
 pub mod serialize;
 pub mod vm;
 pub mod mempool;
+pub mod util;
+pub mod net;
+pub mod rpc;
+pub mod currency;
 
 use {
     clap::Parser,
     crate::context::CTX,
-    crate::db::{DatabaseTrait, rocksdb::TransactionRocksDB},
     crate::context::Context,
     crate::config::Config,
     crate::crypto::keypair::Keypair,
-    std::sync::{Arc, atomic::Ordering},
-    crate::serialize::json::{SerializableJSON}
+    std::sync::atomic::Ordering,
+    crate::rpc::{RpcHost, RpcTrait},
 };
 
 #[derive(Parser, Debug)]
+
 struct Args {
     #[arg(short, long)]
     miner_pubkey: Option<String>,
@@ -32,21 +36,15 @@ fn main() {
     let _args = Args::parse();
     
     info!("Initializing context");
-    CTX.get_or_init(|| {
-        let db = TransactionRocksDB::open(&"db").expect("Failed to open database");
-        Context::new_with_evm(
-            Arc::new(db), 
-            Config::bitcoin()
-        )
-    });
+    CTX.get_or_init(|| Context::new_with_evm(Config::bitcoin()));
 
     ctx!(miner_keypair).write().unwrap().replace(Keypair::new_ed25519().expect("Failed to generate keypair"));
 
     info!("Context initialized");
     info!("Block height: {}", ctx!(block_height).load(Ordering::Relaxed));
 
-    info!("{}", ctx!(config).to_json().expect("Failed to serialize config"));
-    std::process::exit(0);
+    #[cfg(feature = "rpc-json")]
+    ctx!(rpc).listen(RpcHost::Localhost, 8080).expect("Failed to listen");
     
     match consensus::main_loop() {
         Ok(_) => info!("Consensus loop finished"),

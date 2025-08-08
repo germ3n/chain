@@ -2,17 +2,16 @@ use {
     crate::ctx,
     std::sync::atomic::Ordering,
     crate::structs::block::Block,
-    crate::db::DatabaseTrait,
     anyhow::Error,
-    crate::vm::VMTrait,
     crate::crypto::hash::{Hashable, HashAlgorithm},
-    crate::serialize::binary::to_bytes,
-    crate::crypto::keypair::Signable,
+    std::sync::Arc,
 };
 
 pub fn main_loop() -> Result<(), Error> {
     info!("Initializing VM");
-    ctx!(vms).read().unwrap().iter().for_each(|vm| vm.init().expect("Failed to initialize VM"));
+    ctx!(vms).write().unwrap().iter_mut().for_each(|vm| {
+        Arc::get_mut(vm).expect("Failed to get VM").initialize(&[]).expect("Failed to initialize VM")
+    });
     info!("VM initialized");
 
     info!("Starting consensus loop");
@@ -24,11 +23,13 @@ pub fn main_loop() -> Result<(), Error> {
             info!("Mempool tx: 0x{}: {}", hash, tx);
         });
 
-        let mut block = Block::coinbase(ctx!(curr_top).read().unwrap().clone());
+        let block = Block::coinbase(ctx!(curr_top).read().unwrap().clone());
         block.ensure_first_tx_is_coinbase()?;
         block.ensure_single_coinbase()?;
 
-        ctx!(db).with_transaction(|tx| {
+        /*ctx!(db).with_transaction(|tx| {
+            let _difficulty = ctx!(difficulty).load(Ordering::Relaxed);
+
             tx.put_raw_bytes(b"block_height", to_bytes(&block_height)?.as_slice())?;
             block.txs[0].header.signature = Some(block.txs[0].sign(ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair"))?);
 
@@ -51,7 +52,7 @@ pub fn main_loop() -> Result<(), Error> {
             }
             
             Ok(())
-        })?;
+        })?;*/
 
         info!("Block mined, pubkey: {}: {}", ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"), block);
         ctx!(block_height).store(block_height + 1, Ordering::Relaxed);

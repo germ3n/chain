@@ -4,7 +4,7 @@ use {
     bincode::{Encode, Decode},
 };
 
-#[derive(Debug, Clone, Encode, Decode)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq)]
 #[repr(u8)]
 pub enum Address {
     Null = 0,
@@ -61,5 +61,11 @@ impl Account {
         let old_balance = self.balance;
         self.balance += amount;
         Ok(old_balance)
+    }
+}
+
+impl Address {
+    pub fn null() -> Self {
+        Self::Null
     }
 }

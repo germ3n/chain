@@ -1,5 +1,5 @@
 use {
-    crate::vm::{VMTrait, contract::ContractTrait},
+    crate::vm::{VMTrait, contract::{ContractTrait, ContractValueType}},
     crate::structs::{tx::Tx, account::Address},
     anyhow::Error,
     crate::crypto::hash::Hash,
@@ -7,15 +7,19 @@ use {
     std::sync::Arc,
     crate::db::DatabaseTrait,
     mlua::Lua,
-    std::marker::PhantomData,
+    crate::db::open_db,
 };
 
-pub struct LVM<D: DatabaseTrait> {
-    pub state: Option<LVMState<D>>,
+pub struct LVM {
+    pub state: Option<LVMState>,
 }
 
-impl<D: DatabaseTrait> VMTrait<D> for LVM<D> {
-    fn init(&self) -> Result<(), Error> {
+impl VMTrait for LVM {
+    fn initialize(&mut self, _args: &[&dyn Any]) -> Result<(), Error> {
+        let account_store_path = _args[0].downcast_ref::<&str>().expect("Failed to downcast account store path");
+        let contract_store_path = _args[1].downcast_ref::<&str>().expect("Failed to downcast contract store path");
+        let transaction_store_path = _args[2].downcast_ref::<&str>().expect("Failed to downcast transaction store path");
+        self.state = Some(LVMState::new(account_store_path, contract_store_path, transaction_store_path).expect("Failed to initialize LVM"));
         Ok(())
     }
 
@@ -43,11 +47,11 @@ impl<D: DatabaseTrait> VMTrait<D> for LVM<D> {
         Err(Error::msg("Not implemented"))
     }
 
-    fn deploy_contract(&self, _code: &[u8]) -> Result<Hash, Error> {
+    fn deploy_contract(&self, _code: &[u8]) -> Result<Address, Error> {
         Err(Error::msg("Not implemented"))
     }
 
-    fn get_contract(&self, _hash: &Hash) -> Result<Option<&dyn ContractTrait<D>>, Error> {
+    fn get_contract(&self, _hash: &Hash) -> Result<Option<&dyn ContractTrait>, Error> {
         Err(Error::msg("Not implemented"))
     }
 
@@ -56,10 +60,10 @@ impl<D: DatabaseTrait> VMTrait<D> for LVM<D> {
     }
 }
 
-impl<D: DatabaseTrait> LVM<D> {
-    pub fn new(db: Arc<D>) -> Self {
+impl LVM {
+    pub fn new() -> Self {
         Self { 
-            state: Some(LVMState::new(db)),
+            state: None,
         }
     }
 }
@@ -68,21 +72,21 @@ pub struct LuaEnv {
     pub lua: Lua,
 }
 
-pub struct LVMState<D: DatabaseTrait> {
-    pub accounts: Arc<D>,
-    pub contracts: Arc<D>,
-    pub transactions: Arc<D>,
+pub struct LVMState {
+    pub accounts: Arc<Box<dyn DatabaseTrait>>,
+    pub contracts: Arc<Box<dyn DatabaseTrait>>,
+    pub transactions: Arc<Box<dyn DatabaseTrait>>,
     pub lua: LuaEnv,
 }
 
-impl<D: DatabaseTrait> LVMState<D> {
-    pub fn new(db: Arc<D>) -> Self {
-        Self { 
-            accounts: db.clone(), 
-            contracts: db.clone(), 
-            transactions: db.clone(), 
+impl LVMState {
+    pub fn new(account_store_path: &str, contract_store_path: &str, transaction_store_path: &str) -> Result<Self, Error> {
+        Ok(Self { 
+            accounts: open_db(account_store_path)?, 
+            contracts: open_db(contract_store_path)?, 
+            transactions: open_db(transaction_store_path)?,
             lua: LuaEnv::new()
-        }
+        })
     }
 }
 
@@ -94,33 +98,45 @@ impl LuaEnv {
     }
 }
 
-pub struct Contract<D: DatabaseTrait> {
-    pub address: Address,
-    pub code: Arc<Vec<u8>>,
-    pub last_modified: Option<u64>,
-    pub phantom: PhantomData<D>,
+pub struct Contract {
+    pub address: Option<Address>,
+    pub code: Option<Vec<u8>>,
 }
 
-impl<D: DatabaseTrait + Send + Sync + 'static> ContractTrait<D> for Contract<D> {
-    fn new(data: &dyn Any) -> Self {
-        let (address, code, last_modified) = data.downcast_ref::<(Address, Arc<Vec<u8>>, Option<u64>)>().expect("Invalid contract data");
+impl ContractTrait for Contract {
+    fn new(data: &[&dyn Any]) -> Self {
+        let address = data[0].downcast_ref::<Address>().unwrap();
+        let code = data[1].downcast_ref::<&[u8]>().unwrap();
         Self { 
-            address: address.clone(),
-            code: code.clone(),
-            last_modified: *last_modified,
-            phantom: PhantomData,
+            address: Some(address.clone()),
+            code: Some(code.to_vec()),
         }
     }
 
-    fn get_code(&self) -> Result<Arc<Vec<u8>>, Error> {
-        Ok(self.code.clone())
+    fn get_code(&self) -> Option<&[u8]> {
+        match self.code {
+            Some(ref code) => Some(code),
+            None => None,
+        }
     }
 
-    fn get_address(&self) -> &Address {
-        &self.address
+    fn get_address(&self) -> Option<&Address> {
+        self.address.as_ref()
     }
 
-    fn get_last_modified(&self) -> Option<u64> {
-        self.last_modified
+    fn upgrade(&self, _code: Vec<u8>) -> Result<(), Error> {
+        Err(Error::msg("Not implemented"))
+    }
+
+    fn call_function(&self, _function: Hash, _args: &[&ContractValueType]) -> Result<Vec<u8>, Error> {
+        Err(Error::msg("Not implemented"))
+    }
+
+    fn get_from_storage(&self, _key: &[u8]) -> Result<Vec<u8>, Error> {
+        Err(Error::msg("Not implemented"))
+    }
+
+    fn put_to_storage(&self, _key: &[u8], _value: &[u8]) -> Result<(), Error> {
+        Err(Error::msg("Not implemented"))
     }
 }

@@ -59,8 +59,7 @@ impl Block {
     pub fn validate(&self) -> Result<(), Error> {
         self.ensure_first_tx_is_coinbase()?;
         self.ensure_single_coinbase()?;
-        let calculated_hash = self.hash(HashAlgorithm::Blake3_256);
-        if self.hash != calculated_hash {
+        if self.hash != self.hash(HashAlgorithm::Blake3_256) {
             return Err(Error::msg("Block hash does not match calculated hash"));
         }
         Ok(())
