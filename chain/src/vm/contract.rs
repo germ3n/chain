@@ -8,7 +8,7 @@ use {
     bincode::{Encode, Decode},
 };
 
-#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
 #[repr(u8)]
 pub enum ContractValueType {
     U8(u8) = 0,

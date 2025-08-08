@@ -8,27 +8,39 @@ use {
     anyhow::Error,
     std::sync::Arc,
     std::collections::HashSet,
+    std::sync::atomic::AtomicUsize,
+    std::sync::atomic::Ordering,
 };
 
 pub struct Mempool {
     pub txs: RwLock<HashMap<Hash, Arc<Tx>>>,
+    pub tx_count: AtomicUsize,
 }
 
 impl Mempool {
     pub fn new() -> Self {
-        Self { txs: RwLock::new(HashMap::new()) }
+        Self { 
+            txs: RwLock::new(HashMap::new()),
+            tx_count: AtomicUsize::new(0),
+        }
     }
 
     pub fn add_tx(&mut self, tx: Tx) -> Result<(), Error> {
         match self.txs.write().unwrap().insert(tx.hash(HashAlgorithm::Blake3_256), Arc::new(tx)) {
             Some(_) => Err(anyhow::Error::msg("Transaction already exists in mempool")),
-            None => Ok(()),
+            None => {
+                self.tx_count.fetch_add(1, Ordering::Relaxed);
+                Ok(())
+            },
         }
     }
 
     pub fn remove_tx(&mut self, hash: Hash) -> Result<(), Error> {
         match self.txs.write().unwrap().remove(&hash) {
-            Some(_) => Ok(()),
+            Some(_) => {
+                self.tx_count.fetch_sub(1, Ordering::Relaxed);
+                Ok(())
+            },
             None => Err(anyhow::Error::msg("Transaction not found in mempool")),
         }
     }
@@ -45,7 +57,18 @@ impl Mempool {
     }
 
     pub fn remove_txs(&self, hashes: HashSet<Hash>) {
-        self.txs.write().unwrap().retain(|hash, _| !hashes.contains(hash));
+        self.txs.write().unwrap().retain(|hash, _| {
+            if hashes.contains(hash) {
+                self.tx_count.fetch_sub(1, Ordering::Relaxed);
+                false
+            } else {
+                true
+            }
+        });
+    }
+
+    pub fn tx_count(&self) -> usize {
+        self.tx_count.load(Ordering::Relaxed)
     }
 }
 

@@ -4,7 +4,7 @@ use {
     bincode::{Encode, Decode},
 };
 
-#[derive(Debug, Clone, Encode, Decode, PartialEq)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum Address {
     Null = 0,

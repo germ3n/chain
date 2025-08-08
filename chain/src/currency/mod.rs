@@ -1,5 +1,6 @@
 pub mod native;
 pub mod nft;
+pub mod token;
 
 use {
     anyhow::Error,
@@ -10,7 +11,8 @@ pub trait CurrencyInfoTrait {
     fn name(&self) -> &str;
     fn symbol(&self) -> &str;
     fn decimal_places(&self) -> u32;
-    fn one_token(&self) -> u128;
+    fn one_currency_unit(&self) -> u128;
+    fn max_circulating_supply(&self) -> u128;
 }
 
 pub trait CurrencyInitTrait {

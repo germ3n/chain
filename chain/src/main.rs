@@ -13,6 +13,7 @@ pub mod util;
 pub mod net;
 pub mod rpc;
 pub mod currency;
+pub mod event;
 
 use {
     clap::Parser,

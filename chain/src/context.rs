@@ -1,12 +1,13 @@
 use {
     crate::{
-        crypto::keypair::Keypair,
-        vm::{VMTrait, evm::EVM, lvm::LVM},
-        crypto::hash::Hash,
-        mempool::Mempool,
-        config::Config,
+        config::Config, 
+        crypto::{hash::Hash, keypair::Keypair}, 
+        db::{DatabaseTrait, rocksdb::TransactionRocksDB}, 
+        event::{EventManager, EventManagerTrait}, 
+        mempool::Mempool, 
+        vm::{evm::EVM, lvm::LVM, VMTrait}
     },
-    std::sync::{Arc, OnceLock, atomic::{AtomicU64, AtomicU32, Ordering}, RwLock},
+    std::sync::{atomic::{AtomicU32, AtomicU64, Ordering}, Arc, OnceLock, RwLock},
 };
 
 #[cfg(feature = "rpc-json")]
@@ -23,6 +24,8 @@ pub struct Context {
     pub vms: RwLock<Vec<Arc<Box<dyn VMTrait + Send + Sync>>>>,
     pub mempool: Mempool,
     pub config: Config,
+    pub event_manager: EventManager,
+    pub db: RwLock<Arc<Box<TransactionRocksDB>>>,
     #[cfg(feature = "rpc-json")]
     pub rpc: JsonRpc,
 }
@@ -43,6 +46,8 @@ impl Context {
             }),
             mempool: Mempool::new(),
             config,
+            event_manager: EventManager::new(),
+            db: RwLock::new(Arc::new(Box::new(TransactionRocksDB::open(&[&"db"]).expect("Failed to open database")))),
             #[cfg(feature = "rpc-json")]
             rpc: JsonRpc::new(),
         }

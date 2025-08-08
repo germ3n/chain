@@ -22,7 +22,11 @@ impl CurrencyInfoTrait for NftCurrency {
         0
     }
     
-    fn one_token(&self) -> u128 {
+    fn one_currency_unit(&self) -> u128 {
+        1
+    }
+
+    fn max_circulating_supply(&self) -> u128 {
         1
     }
 }

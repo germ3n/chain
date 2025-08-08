@@ -32,7 +32,7 @@ pub enum Keypair {
     Secp256k1_Schnorr(Secp256k1SecretKey, Secp256k1PublicKey) = 4,
 }
 
-#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
 #[repr(u8)]
 pub enum PublicKey {
     Null = 0,
@@ -46,7 +46,7 @@ pub enum PublicKey {
     Secp256k1_Schnorr([u8; 32]) = 4,
 }
 
-#[derive(Debug, Clone, PartialEq, Encode, Decode)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
 #[repr(u8)]
 pub enum Signature {
     Null = 0,

@@ -50,13 +50,13 @@ impl Tx {
         }
     }
 
-    pub fn sign(&mut self, keypair: Keypair) -> Result<(), Error> {
+    pub fn sign(&mut self, keypair: &Keypair) -> Result<(), Error> {
         self.header.signature = Some(keypair.sign(self.to_signable_bytes()?.as_slice())?);
         //self.header.signature.as_ref().unwrap().verify(&keypair, self.to_bytes()?.as_slice())?;
         Ok(())
     }
 
-    pub fn verify(&self, keypair: Keypair) -> Result<(), Error> {
+    pub fn verify(&self, keypair: &Keypair) -> Result<(), Error> {
         match &self.header.signature {
             Some(signature) => signature.verify(&keypair, self.to_signable_bytes()?.as_slice()),
             None => return Err(anyhow::Error::msg("No signature")),

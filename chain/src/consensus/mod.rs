@@ -5,6 +5,9 @@ use {
     anyhow::Error,
     crate::crypto::hash::{Hashable, HashAlgorithm},
     std::sync::Arc,
+    crate::event::{Event, EventManagerTrait},
+    crate::serialize::binary::SerializableBytes,
+    crate::db::DatabaseTrait,
 };
 
 pub fn main_loop() -> Result<(), Error> {
@@ -23,19 +26,21 @@ pub fn main_loop() -> Result<(), Error> {
             info!("Mempool tx: 0x{}: {}", hash, tx);
         });
 
-        let block = Block::coinbase(ctx!(curr_top).read().unwrap().clone());
+        let mut block = Block::coinbase(ctx!(curr_top).read().unwrap().clone());
         block.ensure_first_tx_is_coinbase()?;
         block.ensure_single_coinbase()?;
 
-        /*ctx!(db).with_transaction(|tx| {
+        ctx!(db).write().unwrap().with_transaction(|tx| {
             let _difficulty = ctx!(difficulty).load(Ordering::Relaxed);
 
-            tx.put_raw_bytes(b"block_height", to_bytes(&block_height)?.as_slice())?;
-            block.txs[0].header.signature = Some(block.txs[0].sign(ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair"))?);
+            tx.put_raw_bytes(b"block_height", block_height.to_bytes()?.as_slice())?;
+            block.txs[0].sign(ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair"))?;
 
             for vm in ctx!(vms).read().unwrap().iter() {
                 vm.prepare_execution()?;
                 for tx in block.txs.iter().skip(1) { // skip coinbase tx
+                    ctx!(event_manager).add_event(Event::NewTx(tx.hash(HashAlgorithm::Blake3_256)));
+
                     vm.start_tx()?;
                     match vm.execute_tx(tx) {
                         Ok(_) => {
@@ -52,11 +57,13 @@ pub fn main_loop() -> Result<(), Error> {
             }
             
             Ok(())
-        })?;*/
+        })?;
+
+        ctx!(event_manager).add_event(Event::NewBlock(block.hash(HashAlgorithm::Blake3_256)));
 
         info!("Block mined, pubkey: {}: {}", ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"), block);
         ctx!(block_height).store(block_height + 1, Ordering::Relaxed);
 
-        ctx!(mempool).remove_txs(block.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect());
+        ctx!(mempool).remove_txs(block.txs.iter().skip(1).map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect());
     }
 }
