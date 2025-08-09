@@ -1,9 +1,11 @@
 use {
-    crate::currency::{CurrencyInfoTrait, CurrencyInitTrait, CurrencyTrait},
+    crate::currency::{Amount, CurrencyInfoTrait, CurrencyInitTrait, CurrencyTrait},
     anyhow::Error,
     std::any::Any,
     crate::structs::account::Address,
     crate::config::POWERS_OF_10,
+    std::sync::{RwLock},
+    num_traits::ops::saturating::{SaturatingAdd, SaturatingSub},
 };
 
 pub struct TokenCurrency {
@@ -11,11 +13,12 @@ pub struct TokenCurrency {
     pub symbol: String,
     pub decimal_places: u32,
     pub contract_address: Address,
-    pub max_circulating_supply: u128,
+    pub issued_supply: RwLock<Amount>,
+    pub max_circulating_supply: RwLock<Amount>,
 }
 
 impl TokenCurrency {
-    pub fn new(name: String, symbol: String, decimal_places: u32, contract_address: Address, max_circulating_supply: u128) -> Result<Self, Error> {
+    pub fn new(name: String, symbol: String, decimal_places: u32, contract_address: Address, issued_supply: u128, max_circulating_supply: u128) -> Result<Self, Error> {
         if decimal_places > POWERS_OF_10.len() as u32 {
             return Err(Error::msg(format!("Decimal places must be less than {}", POWERS_OF_10.len())));
         }
@@ -25,17 +28,62 @@ impl TokenCurrency {
             symbol,
             decimal_places,
             contract_address,
-            max_circulating_supply,
+            issued_supply: RwLock::new(Amount::U128(issued_supply)),
+            max_circulating_supply: RwLock::new(Amount::U128(max_circulating_supply)),
         })
     }
 }
 
 impl CurrencyTrait for TokenCurrency {
-    fn mint(&self, _amount: u128) -> Result<(), Error> {
-        Ok(())
+    fn mint(&self, amount: &Amount) -> Result<(), Error> {
+        match (amount, &*self.max_circulating_supply.read().unwrap(), &mut *self.issued_supply.write().unwrap()) {
+            (Amount::U128(val), Amount::U128(max_circulating_supply), Amount::U128(issued_supply)) => {
+                if *max_circulating_supply > 0 && *max_circulating_supply < issued_supply.saturating_add(*val) {
+                    Err(Error::msg("Max circulating supply exceeded"))
+                }
+                else {
+                    *issued_supply = issued_supply.saturating_add(*val);
+                    Ok(())
+                }
+            }
+            (Amount::U256(val), Amount::U256(max_circulating_supply), Amount::U256(issued_supply)) => {
+                if *max_circulating_supply > 0 && *max_circulating_supply < issued_supply.saturating_add(val) {
+                    Err(Error::msg("Max circulating supply exceeded"))
+                }
+                else {
+                    *issued_supply = issued_supply.saturating_add(val);
+                    Ok(())
+                }
+            }
+            _ => Err(Error::msg("Unsupported amount type combination"))
+        }
     }
 
-    fn burn(&self, _amount: u128) -> Result<(), Error> {
+    fn burn(&self, amount: &Amount) -> Result<(), Error> {
+        match (amount, &*self.max_circulating_supply.read().unwrap(), &mut *self.issued_supply.write().unwrap()) {
+            (Amount::U128(val), Amount::U128(max_circulating_supply), Amount::U128(issued_supply)) => {
+                if *max_circulating_supply > 0 && *max_circulating_supply < issued_supply.saturating_add(*val) {
+                    Err(Error::msg("Max circulating supply exceeded"))
+                }
+                else {
+                    *issued_supply = issued_supply.saturating_sub(*val);
+                    Ok(())
+                }
+            }
+            (Amount::U256(val), Amount::U256(max_circulating_supply), Amount::U256(issued_supply)) => {
+                if *max_circulating_supply > 0 && *max_circulating_supply < issued_supply.saturating_sub(val) {
+                    Err(Error::msg("Max circulating supply exceeded"))
+                }
+                else {
+                    *issued_supply = issued_supply.saturating_sub(val);
+                    Ok(())
+                }
+            }
+            _ => Err(Error::msg("Unsupported amount type combination"))
+        }
+    }
+
+    fn can_transfer(&self, _from: &Address, _to: &Address, _amount: &Amount) -> Result<(), Error> {
         Ok(())
     }
 }
@@ -53,12 +101,12 @@ impl CurrencyInfoTrait for TokenCurrency {
         self.decimal_places
     }
 
-    fn one_currency_unit(&self) -> u128 {
-        POWERS_OF_10[self.decimal_places as usize]
+    fn one_currency_unit(&self) -> Amount {
+        Amount::U128(POWERS_OF_10[self.decimal_places as usize])
     }
 
-    fn max_circulating_supply(&self) -> u128 {
-        self.max_circulating_supply
+    fn max_circulating_supply(&self) -> Amount {
+        self.max_circulating_supply.read().unwrap().clone()
     }
 }
 

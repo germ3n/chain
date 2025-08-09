@@ -1,11 +1,10 @@
 use {
-    crate::rpc::{RpcResponse, RpcTrait},
-    crate::rpc::json::{JsonRpcHeaders, JsonRpcHeadersTrait, JsonRpcResponse, JsonRpcBody, JsonRpcBodyTrait},    
-    std::any::Any,
-    crate::serialize::json::{SerializableJSON},
+    crate::rpc::RpcResponse,    
+    std::any::Any,  
     crate::ctx,
     std::sync::atomic::Ordering,
     serde_json::{Map, Value as JsonValue},
+    crate::structs::block::Block,
 };
 
 macro_rules! json_obj {
@@ -18,12 +17,21 @@ macro_rules! json_obj {
     }};
 }
 
-pub fn get_height(message: &[&dyn Any]) -> RpcResponse {
-    RpcResponse::Success(json_obj!(
-        "height" => (ctx!(block_height).load(Ordering::Relaxed) as u64).into()
-    ).to_string().into())
+pub fn get_height(_message: &[&dyn Any]) -> (RpcResponse, u16) {
+    let (top_block, height) = {
+        let top_block = ctx!(curr_top).read().expect("Failed to read curr_top");
+        let height = ctx!(block_height).load(Ordering::Relaxed);
+        (top_block.clone(), height)
+    };
+    
+    (RpcResponse::Success(serde_json::to_vec(&json_obj!(
+        "height" => height.into(),
+        "top_block" => serde_json::to_value(top_block).expect("Failed to serialize hash"),
+    )).expect("Failed to serialize response")), 200)
 }
 
-pub fn get_block(message: &[&dyn Any]) -> RpcResponse {
-    RpcResponse::Success(vec![])
+pub fn get_block(_message: &[&dyn Any]) -> (RpcResponse, u16) {
+    (RpcResponse::Success(serde_json::to_vec(&json_obj!(
+        "block" => serde_json::to_value(Block::genesis()).expect("Failed to serialize block"),
+    )).expect("Failed to serialize block")), 200)
 }

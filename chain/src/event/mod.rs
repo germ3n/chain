@@ -4,14 +4,19 @@ use {
     std::sync::{RwLock},
     crate::vm::contract::ContractValueType,
     crate::structs::account::Address,
+    crate::currency::Amount,
+    std::collections::HashMap,
 };
 
-#[derive(Debug, PartialEq, Encode, Decode, Eq, Hash)]
+#[derive(Debug, PartialEq, Encode, Decode, Eq)]
 #[repr(u32)]
 pub enum Event {
-    NewBlock(Hash) = 0x00000001,
-    NewTx(Hash) = 0x00000002,
-    CustomTxEvent((Hash, Address, String, Vec<(String, ContractValueType)>)) = 0x00000003, // (tx_hash, contract_address, event_name, (key, value))
+    NewBlock(Hash) = 0xB0000010,
+    NewTx(Hash) = 0xB0000020,
+
+    TokenMinted(Address, Address, Address, Amount) = 0xC0000010, // (token_address, from_address, to_address, amount)
+    TokenBurned(Address, Address, Address, Amount) = 0xC0000020, // (token_address, from_address, to_address, amount)
+    CustomTxEvent((Hash, Address, String, HashMap<String, ContractValueType>)) = 0xC00000F0, // (tx_hash, contract_address, event_name, (key => value))
 }
 
 pub trait EventManagerTrait {

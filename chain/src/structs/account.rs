@@ -2,6 +2,7 @@ use {
     crate::crypto::{keypair::{PublicKey}, hash::{Hashable, HashAlgorithm, Hash}},
     anyhow::Error,  
     bincode::{Encode, Decode},
+    crate::crypto::hash::HashableBytes,
 };
 
 #[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
@@ -67,5 +68,15 @@ impl Account {
 impl Address {
     pub fn null() -> Self {
         Self::Null
+    }
+}
+
+impl HashableBytes for Address {
+    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
+        match self {
+            Address::Ed25519(pubkey) => Ok(pubkey.to_vec()),
+            Address::EdBlake(pubkey) => Ok(pubkey.to_vec()),
+            _ => Err(Error::msg("Invalid address")),
+        }
     }
 }

@@ -2,41 +2,52 @@ use {
     bincode::{Encode, Decode},
     crate::crypto::hash::{HashAlgorithm, Hash},
     crate::structs::tx::{Tx, TxData},
-    crate::crypto::hash::Hashable,
+    crate::crypto::hash::{Hashable, HashableBytes},
     anyhow::Error,
+    serde::{Serialize, Deserialize},
+    crate::serialize::binary::to_bytes
 };
 
-#[derive(Encode, Decode, PartialEq, Debug)]
-pub struct Block {
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
+pub struct BlockHeader {
     pub hash: Hash,
     pub prev_hash: Hash,
     pub nonce: u64,
     pub timestamp: u64,
+}
+
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Block {
+    pub header: BlockHeader,
     pub txs: Vec<Tx>,
 }
 
 impl Block {
     pub fn genesis() -> Self {
         let mut block = Self {
-            hash: Hash::null(),
-            prev_hash: Hash::null(),
-            nonce: 0,
-            timestamp: 0,
+            header: BlockHeader {
+                hash: Hash::null(),
+                prev_hash: Hash::null(),
+                nonce: 0,
+                timestamp: 0,
+            },
             txs: vec![],
         };
-        block.hash = block.hash(HashAlgorithm::Blake3_256);
+        block.header.hash = block.hash(HashAlgorithm::Blake3_256);
         block
     }
 
     pub fn coinbase(prev_hash: Hash) -> Self {
         let mut block = Self {
-            hash: Hash::null(),
-            prev_hash: prev_hash,
-            nonce: 0,
-            timestamp: 0,
+            header: BlockHeader {
+                hash: Hash::null(),
+                prev_hash: prev_hash,
+                nonce: 0,
+                timestamp: 0,
+            },
             txs: vec![Tx::coinbase()],
         };
-        block.hash = block.hash(HashAlgorithm::Blake3_256);
+        block.header.hash = block.hash(HashAlgorithm::Blake3_256);
         block
     }
 
@@ -59,10 +70,21 @@ impl Block {
     pub fn validate(&self) -> Result<(), Error> {
         self.ensure_first_tx_is_coinbase()?;
         self.ensure_single_coinbase()?;
-        if self.hash != self.hash(HashAlgorithm::Blake3_256) {
+        if self.header.hash != self.hash(HashAlgorithm::Blake3_256) {
             return Err(Error::msg("Block hash does not match calculated hash"));
         }
         Ok(())
+    }
+}
+
+impl HashableBytes for Block {
+    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
+        to_bytes(&(
+            &self.header.prev_hash,
+            &self.header.nonce,
+            &self.header.timestamp,
+            &self.txs,
+        ))
     }
 }
 
@@ -71,10 +93,10 @@ impl std::fmt::Display for Block {
         write!(
             f, 
             "Block {{ hash: 0x{}, prev_hash: 0x{}, nonce: {}, timestamp: {}, txs: {{ {} }} }}", 
-            self.hash, 
-            self.prev_hash, 
-            self.nonce, 
-            self.timestamp, 
+            self.header.hash, 
+            self.header.prev_hash, 
+            self.header.nonce, 
+            self.header.timestamp, 
             self.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect::<Vec<_>>().into_iter().map(|hash| format!("0x{}", hash)).collect::<Vec<_>>().join(", ")
         )
     }

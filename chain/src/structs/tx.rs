@@ -4,33 +4,35 @@ use {
     crate::crypto::keypair::{Keypair, PublicKey, Signature, SignableBytes},
     anyhow::Error,
     crate::serialize::binary::to_bytes,
+    serde::{Serialize, Deserialize},
+    crate::crypto::hash::HashableBytes,
 };
 
-#[derive(Encode, Decode, PartialEq, Debug)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TxHeader {
     pub signature: Option<Signature>,
     pub version: TxVersion,
     pub sender: PublicKey,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Tx {
     pub header: TxHeader,
     pub data: TxData,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
 #[repr(u16)]
 pub enum TxData {
     Coinbase(TxCoinbaseData) = 0,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TxCoinbaseData {
     pub amount: u128,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
 #[repr(u32)]
 pub enum TxVersion {
     V1 = 0,
@@ -40,7 +42,7 @@ impl Tx {
     pub fn coinbase() -> Self {
         Self {
             header: TxHeader {
-                sender: ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"),
+                sender: ctx!(miner_keypair).read().expect("Failed to read miner_keypair").as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"),
                 version: TxVersion::V1,
                 signature: None,
             },
@@ -66,6 +68,16 @@ impl Tx {
 
 impl SignableBytes for Tx {
     fn to_signable_bytes(&self) -> Result<Vec<u8>, Error> {
+        to_bytes(&(
+            &self.header.sender, 
+            &self.header.version, 
+            &self.data
+        ))
+    }
+}
+
+impl HashableBytes for Tx {
+    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
         to_bytes(&(
             &self.header.sender, 
             &self.header.version, 

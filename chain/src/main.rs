@@ -37,7 +37,7 @@ fn main() {
     let _args = Args::parse();
     
     info!("Initializing context");
-    CTX.get_or_init(|| Context::new_with_evm(Config::bitcoin()));
+    CTX.get_or_init(|| Context::new_with_lvm(Config::bitcoin()));
 
     ctx!(miner_keypair).write().unwrap().replace(Keypair::new_ed25519().expect("Failed to generate keypair"));
 
@@ -45,7 +45,10 @@ fn main() {
     info!("Block height: {}", ctx!(block_height).load(Ordering::Relaxed));
 
     #[cfg(feature = "rpc-json")]
-    ctx!(rpc).listen(RpcHost::Localhost, 8080).expect("Failed to listen");
+    std::thread::spawn(|| {
+        info!("Starting RPC server");
+        ctx!(rpc).listen(RpcHost::Localhost, 8080).expect("Failed to listen");
+    }); 
     
     match consensus::main_loop() {
         Ok(_) => info!("Consensus loop finished"),

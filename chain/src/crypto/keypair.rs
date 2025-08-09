@@ -17,6 +17,7 @@ use {
     crate::serialize::binary::{SerializableBytes, DeserializableBytes},
     crate::crypto::hash::{Hash, HashAlgorithm},
     crate::structs::account::{Account, Address},
+    serde::{Serialize, Deserialize},
 };
 
 #[repr(u8)]
@@ -32,7 +33,7 @@ pub enum Keypair {
     Secp256k1_Schnorr(Secp256k1SecretKey, Secp256k1PublicKey) = 4,
 }
 
-#[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum PublicKey {
     Null = 0,
@@ -58,6 +59,25 @@ pub enum Signature {
     Secp256k1_Ecdsa([u8; 64]) = 3,
     #[cfg(feature = "secp256k1")]
     Secp256k1_Schnorr([u8; 64]) = 4,
+}
+
+impl Serialize for Signature {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("0x{}", self))
+    }
+}
+
+impl<'de> Deserialize<'de> for Signature {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Signature::from_bytes(s.as_bytes()).map_err(|e| serde::de::Error::custom(e.to_string()))
+    }
 }
 
 impl Keypair {

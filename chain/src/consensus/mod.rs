@@ -4,16 +4,16 @@ use {
     crate::structs::block::Block,
     anyhow::Error,
     crate::crypto::hash::{Hashable, HashAlgorithm},
-    std::sync::Arc,
     crate::event::{Event, EventManagerTrait},
     crate::serialize::binary::SerializableBytes,
     crate::db::DatabaseTrait,
+    std::sync::Arc,
 };
 
 pub fn main_loop() -> Result<(), Error> {
     info!("Initializing VM");
     ctx!(vms).write().unwrap().iter_mut().for_each(|vm| {
-        Arc::get_mut(vm).expect("Failed to get VM").initialize(&[]).expect("Failed to initialize VM")
+        Arc::get_mut(vm).expect("Failed to get VM").initialize(&[&"_accounts".to_string(), &"_contracts".to_string(), &"_transactions".to_string()]).expect("Failed to initialize VM")
     });
     info!("VM initialized");
 
@@ -27,8 +27,7 @@ pub fn main_loop() -> Result<(), Error> {
         });
 
         let mut block = Block::coinbase(ctx!(curr_top).read().unwrap().clone());
-        block.ensure_first_tx_is_coinbase()?;
-        block.ensure_single_coinbase()?;
+        block.validate()?;
 
         ctx!(db).write().unwrap().with_transaction(|tx| {
             let _difficulty = ctx!(difficulty).load(Ordering::Relaxed);

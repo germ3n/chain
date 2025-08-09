@@ -1,11 +1,12 @@
 use {
     crate::{
         config::Config, 
-        crypto::{hash::Hash, keypair::Keypair}, 
+        crypto::{hash::{Hash}, keypair::Keypair}, 
         db::{DatabaseTrait, rocksdb::TransactionRocksDB}, 
         event::{EventManager, EventManagerTrait}, 
         mempool::Mempool, 
-        vm::{evm::EVM, lvm::LVM, VMTrait}
+        vm::{evm::EVM, lvm::LVM, VMTrait},
+        structs::block::Block,
     },
     std::sync::{atomic::{AtomicU32, AtomicU64, Ordering}, Arc, OnceLock, RwLock},
 };
@@ -13,7 +14,7 @@ use {
 #[cfg(feature = "rpc-json")]
 use crate::rpc::json::JsonRpc;
 
-pub struct Context {
+pub struct Context { // https://www.youtube.com/watch?v=x2QT3HciQN0
     pub miner_keypair: RwLock<Option<Keypair>>,
     pub block_height: AtomicU64,
     pub curr_top: RwLock<Hash>,
@@ -35,7 +36,7 @@ impl Context {
         Self { 
             block_height: AtomicU64::new(0),
             miner_keypair: RwLock::new(None),
-            curr_top: RwLock::new(Hash::null()),
+            curr_top: RwLock::new(Block::genesis().header.hash),
             curr_circulating_supply: RwLock::new(0),
             issued_supply: RwLock::new(0),
             total_burned_supply: RwLock::new(0),
@@ -78,6 +79,9 @@ pub static CTX: OnceLock<Context> = OnceLock::new();
 macro_rules! ctx {
     () => {
         $crate::context::CTX.get().expect("Context not initialized")
+    };
+    (get) => {
+        $crate::context::CTX.get()
     };
     ($key:ident) => {
         ctx!().$key

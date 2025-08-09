@@ -4,6 +4,7 @@ use {
     crate::serialize::binary::SerializableBytes,
     anyhow::Error,
     xxhash_rust::xxh3::xxh3_64,
+    serde::{Serialize, Deserialize},
 };
 
 #[cfg(feature = "keccak")]
@@ -33,7 +34,7 @@ pub enum Hash {
     XXHash3_64(u64) = 1,
     #[cfg(feature = "blake3")]
     Blake3_256([u8; 32]) = 2,
-    #[cfg(feature = "blake3")]
+    #[cfg(feature = "blake3")]  
     Blake3_512([u8; 64]) = 3,
     #[cfg(feature = "sha2")]
     Sha256([u8; 32]) = 4,
@@ -41,6 +42,25 @@ pub enum Hash {
     Sha512([u8; 64]) = 5,
     #[cfg(feature = "keccak")]
     Keccak256([u8; 32]) = 6,
+}
+
+impl Serialize for Hash {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&format!("0x{}", self))
+    }
+}
+
+impl<'de> Deserialize<'de> for Hash {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(Hash::from_bytes(HashAlgorithm::Blake3_256, s.as_bytes()))
+    }
 }
 
 impl Hash {
@@ -155,8 +175,14 @@ where T: Sized {
     }
 }
 
-impl<T: SerializableBytes> HashableBytes for T {
+/*impl<T: SerializableBytes> HashableBytes for T {
     fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
         self.to_bytes()
+    }
+}*/
+
+impl<T: AsRef<[u8]>> HashableBytes for T {
+    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
+        Ok(self.as_ref().to_vec())
     }
 }

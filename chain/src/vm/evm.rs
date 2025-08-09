@@ -17,10 +17,9 @@ pub struct EVM {
 
 impl VMTrait for EVM {
     fn initialize(&mut self, args: &[&dyn Any]) -> Result<(), Error> {
-        let account_store_path = args[0].downcast_ref::<&str>().expect("Invalid account store path");
-        let contract_store_path = args[1].downcast_ref::<&str>().expect("Invalid contract store path");
-        let transaction_store_path = args[2].downcast_ref::<&str>().expect("Invalid transaction store path");
-
+        let account_store_path = args[0].downcast_ref::<String>().expect("Invalid account store path");
+        let contract_store_path = args[1].downcast_ref::<String>().expect("Invalid contract store path");
+        let transaction_store_path = args[2].downcast_ref::<String>().expect("Invalid transaction store path");
         self.state = Some(EVMState::new(account_store_path, contract_store_path, transaction_store_path)?);
         Ok(())
     }
@@ -80,11 +79,11 @@ pub struct EVMState {
 }
 
 impl EVMState {
-    pub fn new(account_store_path: &str, contract_store_path: &str, transaction_store_path: &str) -> Result<Self, Error> {
+    pub fn new(account_store_path: &String, contract_store_path: &String, transaction_store_path: &String) -> Result<Self, Error> {
         Ok(Self { 
-            accounts: open_db(account_store_path)?, 
-            contracts: open_db(contract_store_path)?, 
-            transactions: open_db(transaction_store_path)?,
+            accounts: open_db(account_store_path.to_owned())?, 
+            contracts: open_db(contract_store_path.to_owned())?, 
+            transactions: open_db(transaction_store_path.to_owned())?,
         })
     }
 }
@@ -106,7 +105,7 @@ impl EVMContract {
 }
 
 impl ContractTrait for EVMContract {
-    fn new(data: &[&dyn Any]) -> Self {
+    fn from_code(data: &[&dyn Any]) -> Self {
         let storage = data[0].downcast_ref::<Arc<Box<dyn DatabaseTrait>>>().expect("Invalid database");
         let address = data[1].downcast_ref::<Address>();
         let code = data[2].downcast_ref::<&[u8]>().expect("Invalid code");

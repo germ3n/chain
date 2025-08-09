@@ -10,53 +10,64 @@ use {
     crate::db::open_db,
 };
 
+pub mod numlib;
+
 pub struct LVM {
     pub state: Option<LVMState>,
 }
 
 impl VMTrait for LVM {
-    fn initialize(&mut self, _args: &[&dyn Any]) -> Result<(), Error> {
-        let account_store_path = _args[0].downcast_ref::<&str>().expect("Failed to downcast account store path");
-        let contract_store_path = _args[1].downcast_ref::<&str>().expect("Failed to downcast contract store path");
-        let transaction_store_path = _args[2].downcast_ref::<&str>().expect("Failed to downcast transaction store path");
-        self.state = Some(LVMState::new(account_store_path, contract_store_path, transaction_store_path).expect("Failed to initialize LVM"));
+    fn initialize(&mut self, args: &[&dyn Any]) -> Result<(), Error> {
+        let account_store_path = args[0].downcast_ref::<String>().expect("Failed to downcast account store path");
+        let contract_store_path = args[1].downcast_ref::<String>().expect("Failed to downcast contract store path");
+        let transaction_store_path = args[2].downcast_ref::<String>().expect("Failed to downcast transaction store path");
+        self.state = Some(LVMState::new(account_store_path, contract_store_path, transaction_store_path)?);
         Ok(())
     }
 
     fn prepare_execution(&self) -> Result<(), Error> {
-        unimplemented!("prepare_execution not implemented")
+        //unimplemented!("prepare_execution not implemented")
+        Ok(())
     }
 
     fn execute_tx(&self, _tx: &Tx) -> Result<(), Error> {
-        unimplemented!("execute_tx not implemented")
+        //unimplemented!("execute_tx not implemented")
+        Ok(())
     }
 
     fn finalize_execution(&self) -> Result<(), Error> {
-        unimplemented!("finalize_execution not implemented")
+        //unimplemented!("finalize_execution not implemented")
+        Ok(())
     }
 
     fn start_tx(&self) -> Result<(), Error> {
-        unimplemented!("start_tx not implemented")
+        //unimplemented!("start_tx not implemented")
+        Ok(())
     }
 
     fn commit_tx(&self) -> Result<(), Error> {
-        unimplemented!("commit_tx not implemented")
+        //unimplemented!("commit_tx not implemented")
+        Ok(())
     }
 
     fn rollback_tx(&self) -> Result<(), Error> {
-        unimplemented!("rollback_tx not implemented")
+        //unimplemented!("rollback_tx not implemented")
+        Ok(())
     }
 
     fn deploy_contract(&self, _code: &[u8]) -> Result<Address, Error> {
-        unimplemented!("deploy_contract not implemented")
+        //unimplemented!("deploy_contract not implemented")
+        Ok(Address::Null)
     }
 
     fn get_contract(&self, _hash: &Hash) -> Result<Option<&dyn ContractTrait>, Error> {
-        unimplemented!("get_contract not implemented")
+        //unimplemented!("get_contract not implemented")
+        Ok(None)
     }
 
     fn get_state(&self) -> Result<&dyn Any, Error> {
-        unimplemented!("get_state not implemented")
+        //unimplemented!("get_state not implemented")
+        Ok(self.state.as_ref().unwrap())
     }
 }
 
@@ -80,13 +91,28 @@ pub struct LVMState {
 }
 
 impl LVMState {
-    pub fn new(account_store_path: &str, contract_store_path: &str, transaction_store_path: &str) -> Result<Self, Error> {
-        Ok(Self { 
-            accounts: open_db(account_store_path)?, 
-            contracts: open_db(contract_store_path)?, 
-            transactions: open_db(transaction_store_path)?,
+    pub fn new(account_store_path: &String, contract_store_path: &String, transaction_store_path: &String) -> Result<Self, Error> {
+        let state = Self { 
+            accounts: open_db(account_store_path.to_owned())?, 
+            contracts: open_db(contract_store_path.to_owned())?, 
+            transactions: open_db(transaction_store_path.to_owned())?,
             lua: LuaEnv::new()
-        })
+        };
+        
+        numlib::register_u128_library(&state.lua.lua)?;
+        numlib::register_u64_library(&state.lua.lua)?;
+        numlib::register_u32_library(&state.lua.lua)?;
+        numlib::register_u16_library(&state.lua.lua)?;
+        numlib::register_u8_library(&state.lua.lua)?;
+        numlib::register_i128_library(&state.lua.lua)?;
+        numlib::register_i64_library(&state.lua.lua)?;
+        numlib::register_i32_library(&state.lua.lua)?;
+        numlib::register_i16_library(&state.lua.lua)?;
+        numlib::register_i8_library(&state.lua.lua)?;
+        info!("LVM numlib registered");
+
+        info!("LVM state initialized");
+        Ok(state)
     }
 }
 
@@ -104,7 +130,7 @@ pub struct Contract {
 }
 
 impl ContractTrait for Contract {
-    fn new(data: &[&dyn Any]) -> Self {
+    fn from_code(data: &[&dyn Any]) -> Self {
         let address = data[0].downcast_ref::<Address>().unwrap();
         let code = data[1].downcast_ref::<&[u8]>().unwrap();
         Self { 

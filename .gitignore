@@ -2,3 +2,6 @@ Cargo.lock
 target/
 .DS_Store
 chain/db/
+chain/_accounts/
+chain/_contracts/
+chain/_transactions/

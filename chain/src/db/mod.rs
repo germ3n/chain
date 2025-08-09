@@ -34,6 +34,7 @@ pub fn hash_key_salted(salt: &[u8], key: &[u8]) -> Hash {
     })
 }
 
-pub fn open_db(path: &str) -> Result<Arc<Box<dyn DatabaseTrait>>, Error> {
-    Ok(Arc::new(Box::new(rocksdb::TransactionRocksDB::open(&[&path.to_string()])?)))
+pub fn open_db(path: String) -> Result<Arc<Box<dyn DatabaseTrait>>, Error> {
+    let path: &'static str = Box::leak(path.into_boxed_str());
+    Ok(Arc::new(Box::new(rocksdb::TransactionRocksDB::open(&[&path])?)))
 }

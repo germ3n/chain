@@ -1,5 +1,6 @@
 use {
-    crate::currency::{CurrencyInfoTrait, CurrencyTrait, CurrencyInitTrait},
+    crate::currency::{Amount, CurrencyInfoTrait, CurrencyTrait, CurrencyInitTrait},
+    crate::structs::account::Address,
     anyhow::Error,
     std::any::Any,
 };
@@ -22,12 +23,12 @@ impl CurrencyInfoTrait for NftCurrency {
         0
     }
     
-    fn one_currency_unit(&self) -> u128 {
-        1
+    fn one_currency_unit(&self) -> Amount {
+        Amount::U128(1)
     }
 
-    fn max_circulating_supply(&self) -> u128 {
-        1
+    fn max_circulating_supply(&self) -> Amount {
+        Amount::U128(1)
     }
 }
 
@@ -38,11 +39,15 @@ impl CurrencyInitTrait for NftCurrency {
 }
 
 impl CurrencyTrait for NftCurrency {
-    fn mint(&self, _amount: u128) -> Result<(), Error> {
+    fn mint(&self, _amount: &Amount) -> Result<(), Error> {
         Err(Error::msg("NFTs cannot be minted"))
     }
 
-    fn burn(&self, _amount: u128) -> Result<(), Error> {
+    fn burn(&self, _amount: &Amount) -> Result<(), Error> {
         Err(Error::msg("NFTs cannot be burned"))
+    }
+
+    fn can_transfer(&self, _from: &Address, _to: &Address, _amount: &Amount) -> Result<(), Error> {
+        Err(Error::msg("NFTs cannot be transferred"))
     }
 }

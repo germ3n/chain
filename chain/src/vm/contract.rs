@@ -31,7 +31,7 @@ pub enum ContractValueType {
 }
 
 pub trait ContractTrait: Any + Send {
-    fn new(data: &[&dyn Any]) -> Self where Self: Sized;
+    fn from_code(data: &[&dyn Any]) -> Self where Self: Sized;
     fn get_code(&self) -> Option<&[u8]>;
     fn upgrade(&self, code: Vec<u8>) -> Result<(), Error>;
     fn get_address(&self) -> Option<&Address>;
