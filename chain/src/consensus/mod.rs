@@ -47,8 +47,8 @@ pub fn main_loop() -> Result<(), Error> {
                             info!("Tx 0x{} executed successfully", tx.hash(HashAlgorithm::Blake3_256));
                             vm.commit_tx()?;
                         },
-                        Err(_) => {
-                            error!("Tx 0x{} execution failed", tx.hash(HashAlgorithm::Blake3_256));
+                        Err(e) => {
+                            error!("Tx 0x{} execution failed: {}", tx.hash(HashAlgorithm::Blake3_256), e);
                             vm.rollback_tx()?;
                         },
                     }

@@ -37,7 +37,7 @@ impl DatabaseTrait for RocksDB {
     }
 
     fn with_transaction(&self, _f: impl FnOnce(&mut dyn TransactionTrait) -> Result<(), Error>) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("with_transaction not implemented")
     }
 }
 

@@ -26,42 +26,34 @@ impl VMTrait for EVM {
     }
 
     fn prepare_execution(&self) -> Result<(), Error> {
-        //Err(Error::msg("Not implemented"))
         Ok(())
     }
 
     fn execute_tx(&self, _tx: &Tx) -> Result<(), Error> {
-        //Err(Error::msg("Not implemented"))
         Ok(())
     }
 
     fn finalize_execution(&self) -> Result<(), Error> {
-        //Err(Error::msg("Not implemented"))
         Ok(())
     }
 
     fn start_tx(&self) -> Result<(), Error> {
-        //Err(Error::msg("Not implemented"))
         Ok(())
     }
 
     fn commit_tx(&self) -> Result<(), Error> {
-        //Err(Error::msg("Not implemented"))
         Ok(())
     }
 
     fn rollback_tx(&self) -> Result<(), Error> {
-        //Err(Error::msg("Not implemented"))
         Ok(())
     }
 
     fn deploy_contract(&self, _code: &[u8]) -> Result<Address, Error> {
-        //Err(Error::msg("Not implemented"))
         Ok(Address::null())
     }
 
     fn get_contract(&self, _hash: &Hash) -> Result<Option<&dyn ContractTrait>, Error> {
-        //Err(Error::msg("Not implemented"))
         Ok(None)
     }
 
@@ -133,7 +125,7 @@ impl ContractTrait for EVMContract {
     }
 
     fn upgrade(&self, _code: Vec<u8>) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("upgrade not implemented")
     }
 
     fn get_address(&self) -> Option<&Address> {
@@ -141,14 +133,14 @@ impl ContractTrait for EVMContract {
     }
 
     fn call_function(&self, _function: Hash, _args: &[&ContractValueType]) -> Result<Vec<u8>, Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("call_function not implemented")
     }
 
     fn get_from_storage(&self, _key: &[u8]) -> Result<Vec<u8>, Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("get_from_storage not implemented")
     }
 
     fn put_to_storage(&self, _key: &[u8], _value: &[u8]) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("put_to_storage not implemented")
     }
 }

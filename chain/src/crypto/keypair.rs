@@ -85,12 +85,12 @@ impl Keypair {
         //let mut csprng = OsRng;
         //let (secret_key, public_key) = secp256k1_generate_keypair(&mut csprng);
         //Keypair::Secp256k1(secret_key, public_key)
-        Err(Error::msg("Not implemented"))
+        unimplemented!("Secp256k1_Ecdsa not implemented")
     }
 
     #[cfg(feature = "secp256k1")]
     pub fn new_secp256k1_schnorr() -> Result<Self, Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("Secp256k1_Schnorr not implemented")
     }
 
     pub fn sign(&self, message: &[u8]) -> Result<Signature, Error> {
@@ -99,7 +99,7 @@ impl Keypair {
             #[cfg(feature = "ed25519")]
             Keypair::Ed25519(signing_key, _) => {
                 let signature = Signature::Ed25519(signing_key.sign(message).to_bytes());
-                signature.verify(self, message)?;
+                //signature.verify(self, message)?;
                 Ok(signature)
             }
             #[cfg(feature = "edblake")]
@@ -107,7 +107,7 @@ impl Keypair {
                 //let signature = Signature::EdBlake(signing_key.sign(message, verifying_key).to_bytes());
                 //signature.verify(self, message)?;
                 //Ok(signature)
-                Err(Error::msg("Not implemented"))
+                unimplemented!("EdBlake not implemented")
             }
             #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Ecdsa(signing_key, _) => {
@@ -125,7 +125,7 @@ impl Keypair {
             }
             #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Schnorr(_, _) => {
-                Err(Error::msg("Not implemented"))
+                unimplemented!("Secp256k1_Schnorr not implemented")
             }
         }
     }
@@ -138,9 +138,9 @@ impl Keypair {
             #[cfg(feature = "edblake")]
             Keypair::EdBlake(_, verifying_key) => Ok(PublicKey::EdBlake(verifying_key.to_bytes())),
             #[cfg(feature = "secp256k1")]
-            Keypair::Secp256k1_Ecdsa(_, _) => Err(Error::msg("Not implemented")),
+            Keypair::Secp256k1_Ecdsa(_, _) => unimplemented!("Secp256k1_Ecdsa not implemented"),
             #[cfg(feature = "secp256k1")]
-            Keypair::Secp256k1_Schnorr(_, _) => Err(Error::msg("Not implemented")),
+            Keypair::Secp256k1_Schnorr(_, _) => unimplemented!("Secp256k1_Schnorr not implemented"),
         }
     }
 
@@ -197,7 +197,7 @@ impl Signature {
             }
             #[cfg(feature = "secp256k1")]
             Keypair::Secp256k1_Schnorr(_, _) => {
-                Err(Error::msg("Not implemented"))
+                unimplemented!("Secp256k1_Schnorr not implemented")
             }
         }
     }
@@ -206,6 +206,40 @@ impl Signature {
 impl PublicKey {
     pub fn null() -> Self {
         PublicKey::Null
+    }
+
+    pub fn verify(&self, message: &[u8], signature: &Signature) -> Result<(), Error> {
+        match self {
+            PublicKey::Null => Err(Error::msg("Null public key")),
+            #[cfg(feature = "ed25519")]
+            PublicKey::Ed25519(pubkey) => {
+                match signature {
+                    Signature::Ed25519(signature) => {
+                        let verifying_key = Ed25519VerifyingKey::from_bytes(pubkey).unwrap();
+                        verifying_key.verify(message, &Ed25519Signature::from_bytes(signature)).map_err(|e| Error::msg(format!("Invalid signature: {}", e)))
+                    }
+                    _ => Err(Error::msg("Invalid signature")),
+                }
+            }
+            #[cfg(feature = "edblake")]
+            PublicKey::EdBlake(pubkey) => {
+                match signature {
+                    &Signature::EdBlake(signature) => {
+                        let verifying_key = EdBlakePublicKey::from_bytes(pubkey).unwrap();
+                        verifying_key.verify(message, &EdBlakeSignature::from_bytes(&signature)?).map_err(|e| Error::msg(format!("Invalid signature: {}", e)))
+                    }
+                    _ => Err(Error::msg("Invalid signature")),
+                }
+            }
+            #[cfg(feature = "secp256k1")]
+            PublicKey::Secp256k1_Ecdsa(_pubkey) => {
+                unimplemented!("Secp256k1_Ecdsa not implemented")
+            }
+            #[cfg(feature = "secp256k1")]
+            PublicKey::Secp256k1_Schnorr(_pubkey) => {
+                unimplemented!("Secp256k1_Schnorr not implemented")
+            }
+        }
     }
 }
 

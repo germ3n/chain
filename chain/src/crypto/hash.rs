@@ -6,6 +6,12 @@ use {
     xxhash_rust::xxh3::xxh3_64,
 };
 
+#[cfg(feature = "keccak")]
+use {
+    sha3::Keccak256,
+    sha3::Digest as Keccak256Digest,
+};
+
 pub enum HashAlgorithm {
     XXHash3_64,
     #[cfg(feature = "blake3")]
@@ -45,7 +51,7 @@ impl Hash {
     pub fn with_hasher(algorithm: HashAlgorithm, callback: impl FnOnce(&mut dyn std::io::Write)) -> Self {
         match algorithm {
             HashAlgorithm::XXHash3_64 => {
-                panic!("XXHash not implemented");
+                unimplemented!("XXHash not implemented");
             }
             #[cfg(feature = "blake3")]
             HashAlgorithm::Blake3_256 => {
@@ -55,19 +61,21 @@ impl Hash {
             }
             #[cfg(feature = "blake3")]
             HashAlgorithm::Blake3_512 => {
-                panic!("Blake3_512 not implemented");
+                unimplemented!("Blake3_512 not implemented");
             }
             #[cfg(feature = "sha2")]
             HashAlgorithm::Sha256 => {
-                panic!("Sha256 not implemented");
+                unimplemented!("Sha256 not implemented");
             }
             #[cfg(feature = "sha3")]
             HashAlgorithm::Sha3 => {
-                panic!("Sha3 not implemented");
+                unimplemented!("Sha3 not implemented");
             }
             #[cfg(feature = "keccak")]
             HashAlgorithm::Keccak256 => {
-                panic!("Keccak256 not implemented");
+                let mut hasher = Keccak256::new();
+                callback(&mut hasher);
+                Self::Keccak256(hasher.finalize().into())
             }
         }
     }
@@ -85,19 +93,21 @@ impl Hash {
             }
             #[cfg(feature = "blake3")]
             HashAlgorithm::Blake3_512 => {
-                panic!("Blake3_512 not implemented");
+                unimplemented!("Blake3_512 not implemented");
             }
             #[cfg(feature = "sha2")]
             HashAlgorithm::Sha256 => {
-                panic!("Sha256 not implemented");
+                unimplemented!("Sha256 not implemented");
             }
             #[cfg(feature = "sha3")]
             HashAlgorithm::Sha3 => {
-                panic!("Sha3 not implemented");
+                unimplemented!("Sha3 not implemented");
             }
             #[cfg(feature = "keccak")]
             HashAlgorithm::Keccak256 => {
-                panic!("Keccak256 not implemented");
+                let mut hasher = Keccak256::new();
+                hasher.update(bytes);
+                Self::Keccak256(hasher.finalize().into())
             }
         }
     }

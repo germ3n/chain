@@ -24,39 +24,39 @@ impl VMTrait for LVM {
     }
 
     fn prepare_execution(&self) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("prepare_execution not implemented")
     }
 
     fn execute_tx(&self, _tx: &Tx) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("execute_tx not implemented")
     }
 
     fn finalize_execution(&self) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("finalize_execution not implemented")
     }
 
     fn start_tx(&self) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("start_tx not implemented")
     }
 
     fn commit_tx(&self) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("commit_tx not implemented")
     }
 
     fn rollback_tx(&self) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("rollback_tx not implemented")
     }
 
     fn deploy_contract(&self, _code: &[u8]) -> Result<Address, Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("deploy_contract not implemented")
     }
 
     fn get_contract(&self, _hash: &Hash) -> Result<Option<&dyn ContractTrait>, Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("get_contract not implemented")
     }
 
     fn get_state(&self) -> Result<&dyn Any, Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("get_state not implemented")
     }
 }
 
@@ -125,18 +125,18 @@ impl ContractTrait for Contract {
     }
 
     fn upgrade(&self, _code: Vec<u8>) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("upgrade not implemented")
     }
 
     fn call_function(&self, _function: Hash, _args: &[&ContractValueType]) -> Result<Vec<u8>, Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("call_function not implemented")
     }
 
     fn get_from_storage(&self, _key: &[u8]) -> Result<Vec<u8>, Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("get_from_storage not implemented")
     }
 
     fn put_to_storage(&self, _key: &[u8], _value: &[u8]) -> Result<(), Error> {
-        Err(Error::msg("Not implemented"))
+        unimplemented!("put_to_storage not implemented")
     }
 }
