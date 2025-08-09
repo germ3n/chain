@@ -99,17 +99,7 @@ impl LVMState {
             lua: LuaEnv::new()
         };
         
-        numlib::register_u128_library(&state.lua.lua)?;
-        numlib::register_u64_library(&state.lua.lua)?;
-        numlib::register_u32_library(&state.lua.lua)?;
-        numlib::register_u16_library(&state.lua.lua)?;
-        numlib::register_u8_library(&state.lua.lua)?;
-        numlib::register_i128_library(&state.lua.lua)?;
-        numlib::register_i64_library(&state.lua.lua)?;
-        numlib::register_i32_library(&state.lua.lua)?;
-        numlib::register_i16_library(&state.lua.lua)?;
-        numlib::register_i8_library(&state.lua.lua)?;
-        info!("LVM numlib registered");
+        numlib::register_all_numeric_libraries(&state.lua.lua)?;
 
         info!("LVM state initialized");
         Ok(state)
