@@ -204,13 +204,14 @@ impl ContractTrait for Contract {
         unimplemented!("perform_upgrade not implemented")
     }
 
-    fn call_function(&self, _from: &Address, function: &String, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
+    fn call_function(&self, _from: &Address, function: &String, args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
         let lua = &self.lvm_state.lua.lua;
         let env = self.lvm_state.lua.get_enviroment(&self.get_env_key()).expect("Failed to get enviroment");
 
         let function = env.raw_get::<Function>(lua.create_string(&function.as_bytes())?)?;
-        match function.call::<bool>(()) {
-            Ok(b) => Ok(ContractValueType::Bool(b)),
+        let lua_args: Result<Vec<_>, _> = args.iter().map(|arg| (*arg).clone().into_lua(lua)).collect();
+        match function.call::<ContractValueType>(lua_args?) {
+            Ok(b) => Ok(b),
             Err(e) => Err(Error::from(e)),
         }
     }
