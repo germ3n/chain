@@ -204,7 +204,7 @@ impl ContractTrait for Contract {
         unimplemented!("perform_upgrade not implemented")
     }
 
-    fn call_function(&self, _from: &Address, function: &String, args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
+    fn call_function(&self, _from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
         let lua = &self.lvm_state.lua.lua;
         let env = self.lvm_state.lua.get_enviroment(&self.get_env_key()).expect("Failed to get enviroment");
 

@@ -36,7 +36,7 @@ pub trait ContractTrait: Any {
     fn get_code(&self) -> Option<&[u8]>;
     fn perform_upgrade(&self, from: &Address, code: &[u8]) -> Result<(), Error>;
     fn get_address(&self) -> Option<&Address>;
-    fn call_function(&self, from: &Address, function: &String, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
+    fn call_function(&self, from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
     fn get_from_storage(&self, key: &[u8]) -> Result<Vec<u8>, Error>;
     fn put_to_storage(&self, key: &[u8], value: &[u8]) -> Result<(), Error>;
 

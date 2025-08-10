@@ -131,7 +131,7 @@ impl ContractTrait for EVMContract {
         self.address.as_ref()
     }
 
-    fn call_function(&self, _from: &Address, _function: &String, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
+    fn call_function(&self, _from: &Address, _function: &str, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
         unimplemented!("call_function not implemented")
     }
 
