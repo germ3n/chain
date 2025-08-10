@@ -49,12 +49,14 @@ matchit = { version = "0.8.6", optional = true }
 paste = "1.0.15"
 primitive-types = "0.13.1"
 num-traits = "0.2.19"
+solana-svm = { version = "2.3.7", optional = true }
 
 [features]
-default = ["evm", "lvm", "blake3", "edblake", "secp256k1", "ed25519", "halving-bitcoin", "sha2", "sha3", "keccak", "rocksdb", "rpc-json"]
+default = ["evm", "lvm", "blake3", "edblake", "secp256k1", "ed25519", "halving-bitcoin", "sha2", "sha3", "keccak", "rocksdb", "rpc-json", "svm"]
 evm = ["revm"]
 lvm = ["mlua"]
 edblake = ["ed25519-dalek-blake3", "blake3"]
 halving-bitcoin = []
 rpc-json = ["astra", "matchit"]
 keccak = ["sha3"]
+svm = ["solana-svm"]

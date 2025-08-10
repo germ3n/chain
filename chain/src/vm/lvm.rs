@@ -8,7 +8,6 @@ use {
     crate::db::DatabaseTrait,
     mlua::Lua,
     crate::db::open_db,
-    crate::crypto::hash::HashAlgorithm,
     mlua::prelude::*,
     mlua::{Function, Value},
 };
@@ -197,18 +196,23 @@ impl ContractTrait for Contract {
         self.address.as_ref()
     }
 
-    fn upgrade(&self, from: &Address, _code: &[u8]) -> Result<(), Error> {
-        match self.call_function(from, Hash::from_bytes(HashAlgorithm::Blake3_256, b"can_upgrade"), &[&ContractValueType::Address(from.clone())]) {
+    fn perform_upgrade(&self, _from: &Address, _code: &[u8]) -> Result<(), Error> {
+        /*match self.call_function(from, &Self::hash_function_name("can_upgrade"), &[&ContractValueType::Address(from.clone())]) {
             Ok(ContractValueType::Bool(true)) => Ok(()),
             _ => Err(Error::msg("Failed to upgrade contract, no permission")),
-        }
+        }*/
+        unimplemented!("perform_upgrade not implemented")
     }
 
-    fn call_function(&self, from: &Address, _function: Hash, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
+    fn call_function(&self, _from: &Address, function: &String, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
         let lua = &self.lvm_state.lua.lua;
         let env = self.lvm_state.lua.get_enviroment(&self.get_env_key()).expect("Failed to get enviroment");
 
-        Ok(ContractValueType::Bool(true))
+        let function = env.raw_get::<Function>(lua.create_string(&function.as_bytes())?)?;
+        match function.call::<bool>(()) {
+            Ok(b) => Ok(ContractValueType::Bool(b)),
+            Err(e) => Err(Error::from(e)),
+        }
     }
 
     fn get_from_storage(&self, _key: &[u8]) -> Result<Vec<u8>, Error> {

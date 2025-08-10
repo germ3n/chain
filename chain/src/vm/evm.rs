@@ -123,15 +123,15 @@ impl ContractTrait for EVMContract {
         }
     }
 
-    fn upgrade(&self, _from: &Address, _code: &[u8]) -> Result<(), Error> {
-        unimplemented!("upgrade not implemented")
+    fn perform_upgrade(&self, _from: &Address, _code: &[u8]) -> Result<(), Error> {
+        unimplemented!("perform_upgrade not implemented")
     }
 
     fn get_address(&self) -> Option<&Address> {
         self.address.as_ref()
     }
 
-    fn call_function(&self, _from: &Address, _function: Hash, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
+    fn call_function(&self, _from: &Address, _function: &String, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
         unimplemented!("call_function not implemented")
     }
 

@@ -138,9 +138,9 @@ impl std::fmt::Display for Hash {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Hash::Null => write!(f, "null"),
-            Hash::XXHash3_64(hash) => write!(f, "{}", hex::encode(hash.to_le_bytes())),
+            Hash::XXHash3_64(hash) => write!(f, "{:016x}", hash),
             #[cfg(feature = "blake3")]
-            Hash::Blake3_256(hash)  => write!(f, "{}", hex::encode(hash)),
+            Hash::Blake3_256(hash) => write!(f, "{}", hex::encode(hash)),
             #[cfg(feature = "blake3")]
             Hash::Blake3_512(hash) => write!(f, "{}", hex::encode(hash)),
             #[cfg(feature = "sha2")]
@@ -156,6 +156,7 @@ impl std::fmt::Display for Hash {
 pub trait Hashable {
     fn hash(&self, algorithm: HashAlgorithm) -> Hash;
     fn hash_with_callback(&self, algorithm: HashAlgorithm, callback: impl FnOnce(&mut dyn std::io::Write)) -> Hash;
+    fn hash_bytes(&self, algorithm: HashAlgorithm) -> Vec<u8>;
 }
 
 pub trait HashableBytes {
@@ -173,6 +174,13 @@ where T: Sized {
         Hash::with_hasher(algorithm, |hasher: &mut dyn std::io::Write| {
             callback(hasher);
         })
+    }
+
+    fn hash_bytes(&self, algorithm: HashAlgorithm) -> Vec<u8> {
+        match self.hash(algorithm) {
+            Hash::Blake3_256(hash) => hash.to_vec(),
+            _ => vec![],
+        }
     }
 }
 

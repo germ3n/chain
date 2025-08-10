@@ -2,12 +2,13 @@ use {
     crate::vm::ContractTrait,
     crate::structs::account::Address,
     crate::vm::contract::ContractValueType,
-    crate::crypto::hash::{Hash, HashAlgorithm},
 };
 
-pub trait Permissions: ContractTrait {
-    fn can_call(&self, from: &Address, function: Hash) -> bool {
-        match self.call_function(from, Hash::from_bytes(HashAlgorithm::Blake3_256, b"can_call"), &[&ContractValueType::Hash(function)]) {
+pub trait Permissions: ContractTrait
+where Self: Sized {
+    fn can_call(&self, from: &Address, function: &String) -> bool
+    where Self: Sized {
+        match self.call_function(from, &Self::hash_function_name("can_call"), &[&ContractValueType::Address(from.clone()), &ContractValueType::String(function.clone())]) {
             Ok(ContractValueType::Bool(true)) => true,
             _ => false,
         }

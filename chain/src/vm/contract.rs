@@ -6,6 +6,7 @@ use {
     anyhow::Error, 
     std::any::Any, 
     bincode::{Encode, Decode},
+    crate::crypto::hash::{Hashable, HashAlgorithm},
 };
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
@@ -31,12 +32,17 @@ pub enum ContractValueType {
     Bool(bool) = 17,
 }
 
-pub trait ContractTrait: Any + Send {
+pub trait ContractTrait: Any {
     fn from_code(data: &[&dyn Any]) -> Result<Self, Error> where Self: Sized;
     fn get_code(&self) -> Option<&[u8]>;
-    fn upgrade(&self, from: &Address, code: &[u8]) -> Result<(), Error>;
+    fn perform_upgrade(&self, from: &Address, code: &[u8]) -> Result<(), Error>;
     fn get_address(&self) -> Option<&Address>;
-    fn call_function(&self, from: &Address, function: Hash, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
+    fn call_function(&self, from: &Address, function: &String, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
     fn get_from_storage(&self, key: &[u8]) -> Result<Vec<u8>, Error>;
     fn put_to_storage(&self, key: &[u8], value: &[u8]) -> Result<(), Error>;
+
+    fn hash_function_name(function: &str) -> String // needs _ prefix
+    where Self: Sized {
+        format!("_0x{}", function.as_bytes().hash(HashAlgorithm::XXHash3_64))
+    }
 }
