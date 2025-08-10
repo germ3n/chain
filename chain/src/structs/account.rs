@@ -3,6 +3,7 @@ use {
     anyhow::Error,  
     bincode::{Encode, Decode},
     crate::crypto::hash::HashableBytes,
+    std::borrow::Cow,
 };
 
 #[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
@@ -72,11 +73,21 @@ impl Address {
 }
 
 impl HashableBytes for Address {
-    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
+    fn get_hashable_bytes(&self) -> Result<Cow<[u8]>, Error> {
         match self {
-            Address::Ed25519(pubkey) => Ok(pubkey.to_vec()),
-            Address::EdBlake(pubkey) => Ok(pubkey.to_vec()),
+            Address::Ed25519(pubkey) => Ok(Cow::Borrowed(pubkey)),
+            Address::EdBlake(pubkey) => Ok(Cow::Borrowed(pubkey)),
             _ => Err(Error::msg("Invalid address")),
+        }
+    }
+}
+
+impl std::fmt::Display for Address {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Address::Ed25519(address) => write!(f, "0x{}", hex::encode(address)),
+            Address::EdBlake(address) => write!(f, "0x{}", hex::encode(address)),
+            _ => write!(f, "Null"),
         }
     }
 }

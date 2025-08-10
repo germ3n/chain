@@ -5,6 +5,7 @@ use {
     serde::{Serialize, Deserialize},
     crate::structs::num::U256,
     primitive_types::U256 as PrimitiveU256,
+    log::info,
 };
 
 trait NumericValue {
@@ -213,6 +214,221 @@ impl NumericResult {
         
         NumericResult::U256(LuaU256(U256(result)))
     }
+
+    fn smart_bitand(a: &dyn NumericValue, b: &dyn NumericValue) -> Self {
+        let a_size = a.size_bytes();
+        let b_size = b.size_bytes();
+        let a_signed = a.is_signed();
+        let b_signed = b.is_signed();
+        
+        if a_size <= 16 && b_size <= 16 {
+            if let (Some(a_val), Some(b_val)) = (a.as_u128(), b.as_u128()) {
+                let result = a_val & b_val;
+                
+                if !a_signed && !b_signed {
+                    if result <= u8::MAX as u128 { return NumericResult::U8(result as u8); }
+                    if result <= u16::MAX as u128 { return NumericResult::U16(result as u16); }
+                    if result <= u32::MAX as u128 { return NumericResult::U32(result as u32); }
+                    if result <= u64::MAX as u128 { return NumericResult::U64(result as u64); }
+                    return NumericResult::U128(result);
+                }
+                
+                if a_signed || b_signed {
+                    if let (Some(a_i), Some(b_i)) = (a.as_i128(), b.as_i128()) {
+                        let result = a_i & b_i;
+                        if result >= i8::MIN as i128 && result <= i8::MAX as i128 { 
+                            return NumericResult::I8(result as i8); 
+                        }
+                        if result >= i16::MIN as i128 && result <= i16::MAX as i128 { 
+                            return NumericResult::I16(result as i16); 
+                        }
+                        if result >= i32::MIN as i128 && result <= i32::MAX as i128 { 
+                            return NumericResult::I32(result as i32); 
+                        }
+                        if result >= i64::MIN as i128 && result <= i64::MAX as i128 { 
+                            return NumericResult::I64(result as i64); 
+                        }
+                        return NumericResult::I128(result);
+                    }
+                }
+            }
+        }
+        
+        let a_u256 = a.as_u256();
+        let b_u256 = b.as_u256();
+        let result = a_u256.0 & b_u256.0;
+        NumericResult::U256(LuaU256(U256(result)))
+    }
+
+    fn smart_bitor(a: &dyn NumericValue, b: &dyn NumericValue) -> Self {
+        let a_size = a.size_bytes();
+        let b_size = b.size_bytes();
+        let a_signed = a.is_signed();
+        let b_signed = b.is_signed();
+        
+        if a_size <= 16 && b_size <= 16 {
+            if let (Some(a_val), Some(b_val)) = (a.as_u128(), b.as_u128()) {
+                let result = a_val | b_val;
+                
+                if !a_signed && !b_signed {
+                    if result <= u8::MAX as u128 { return NumericResult::U8(result as u8); }
+                    if result <= u16::MAX as u128 { return NumericResult::U16(result as u16); }
+                    if result <= u32::MAX as u128 { return NumericResult::U32(result as u32); }
+                    if result <= u64::MAX as u128 { return NumericResult::U64(result as u64); }
+                    return NumericResult::U128(result);
+                }
+                
+                if a_signed || b_signed {
+                    if let (Some(a_i), Some(b_i)) = (a.as_i128(), b.as_i128()) {
+                        let result = a_i | b_i;
+                        if result >= i8::MIN as i128 && result <= i8::MAX as i128 { 
+                            return NumericResult::I8(result as i8); 
+                        }
+                        if result >= i16::MIN as i128 && result <= i16::MAX as i128 { 
+                            return NumericResult::I16(result as i16); 
+                        }
+                        if result >= i32::MIN as i128 && result <= i32::MAX as i128 { 
+                            return NumericResult::I32(result as i32); 
+                        }
+                        if result >= i64::MIN as i128 && result <= i64::MAX as i128 { 
+                            return NumericResult::I64(result as i64); 
+                        }
+                        return NumericResult::I128(result);
+                    }
+                }
+            }
+        }
+        
+        let a_u256 = a.as_u256();
+        let b_u256 = b.as_u256();
+        let result = a_u256.0 | b_u256.0;
+        NumericResult::U256(LuaU256(U256(result)))
+    }
+
+    fn smart_bitxor(a: &dyn NumericValue, b: &dyn NumericValue) -> Self {
+        let a_size = a.size_bytes();
+        let b_size = b.size_bytes();
+        let a_signed = a.is_signed();
+        let b_signed = b.is_signed();
+        
+        if a_size <= 16 && b_size <= 16 {
+            if let (Some(a_val), Some(b_val)) = (a.as_u128(), b.as_u128()) {
+                let result = a_val ^ b_val;
+                
+                if !a_signed && !b_signed {
+                    if result <= u8::MAX as u128 { return NumericResult::U8(result as u8); }
+                    if result <= u16::MAX as u128 { return NumericResult::U16(result as u16); }
+                    if result <= u32::MAX as u128 { return NumericResult::U32(result as u32); }
+                    if result <= u64::MAX as u128 { return NumericResult::U64(result as u64); }
+                    return NumericResult::U128(result);
+                }
+                
+                if a_signed || b_signed {
+                    if let (Some(a_i), Some(b_i)) = (a.as_i128(), b.as_i128()) {
+                        let result = a_i ^ b_i;
+                        if result >= i8::MIN as i128 && result <= i8::MAX as i128 { 
+                            return NumericResult::I8(result as i8); 
+                        }
+                        if result >= i16::MIN as i128 && result <= i16::MAX as i128 { 
+                            return NumericResult::I16(result as i16); 
+                        }
+                        if result >= i32::MIN as i128 && result <= i32::MAX as i128 { 
+                            return NumericResult::I32(result as i32); 
+                        }
+                        if result >= i64::MIN as i128 && result <= i64::MAX as i128 { 
+                            return NumericResult::I64(result as i64); 
+                        }
+                        return NumericResult::I128(result);
+                    }
+                }
+            }
+        }
+        
+        let a_u256 = a.as_u256();
+        let b_u256 = b.as_u256();
+        let result = a_u256.0 ^ b_u256.0;
+        NumericResult::U256(LuaU256(U256(result)))
+    }
+
+    fn smart_shl(a: &dyn NumericValue, shift: u32) -> Self {
+        let a_size = a.size_bytes();
+        let a_signed = a.is_signed();
+        
+        if a_size <= 16 {
+            if let Some(a_val) = a.as_u128() {
+                let result = a_val.checked_shl(shift).unwrap_or(0);
+                
+                if !a_signed {
+                    if result <= u8::MAX as u128 { return NumericResult::U8(result as u8); }
+                    if result <= u16::MAX as u128 { return NumericResult::U16(result as u16); }
+                    if result <= u32::MAX as u128 { return NumericResult::U32(result as u32); }
+                    if result <= u64::MAX as u128 { return NumericResult::U64(result as u64); }
+                    return NumericResult::U128(result);
+                }
+                
+                if let Some(a_i) = a.as_i128() {
+                    let result = a_i.checked_shl(shift).unwrap_or(0);
+                    if result >= i8::MIN as i128 && result <= i8::MAX as i128 { 
+                        return NumericResult::I8(result as i8); 
+                    }
+                    if result >= i16::MIN as i128 && result <= i16::MAX as i128 { 
+                        return NumericResult::I16(result as i16); 
+                    }
+                    if result >= i32::MIN as i128 && result <= i32::MAX as i128 { 
+                        return NumericResult::I32(result as i32); 
+                    }
+                    if result >= i64::MIN as i128 && result <= i64::MAX as i128 { 
+                        return NumericResult::I64(result as i64); 
+                    }
+                    return NumericResult::I128(result);
+                }
+            }
+        }
+        
+        let a_u256 = a.as_u256();
+        let result = a_u256.0 << shift;
+        NumericResult::U256(LuaU256(U256(result)))
+    }
+
+    fn smart_shr(a: &dyn NumericValue, shift: u32) -> Self {
+        let a_size = a.size_bytes();
+        let a_signed = a.is_signed();
+        
+        if a_size <= 16 {
+            if let Some(a_val) = a.as_u128() {
+                let result = a_val >> shift;
+                
+                if !a_signed {
+                    if result <= u8::MAX as u128 { return NumericResult::U8(result as u8); }
+                    if result <= u16::MAX as u128 { return NumericResult::U16(result as u16); }
+                    if result <= u32::MAX as u128 { return NumericResult::U32(result as u32); }
+                    if result <= u64::MAX as u128 { return NumericResult::U64(result as u64); }
+                    return NumericResult::U128(result);
+                }
+                
+                if let Some(a_i) = a.as_i128() {
+                    let result = a_i >> shift;
+                    if result >= i8::MIN as i128 && result <= i8::MAX as i128 { 
+                        return NumericResult::I8(result as i8); 
+                    }
+                    if result >= i16::MIN as i128 && result <= i16::MAX as i128 { 
+                        return NumericResult::I16(result as i16); 
+                    }
+                    if result >= i32::MIN as i128 && result <= i32::MAX as i128 { 
+                        return NumericResult::I32(result as i32); 
+                    }
+                    if result >= i64::MIN as i128 && result <= i64::MAX as i128 { 
+                        return NumericResult::I64(result as i64); 
+                    }
+                    return NumericResult::I128(result);
+                }
+            }
+        }
+        
+        let a_u256 = a.as_u256();
+        let result = a_u256.0 >> shift;
+        NumericResult::U256(LuaU256(U256(result)))
+    }
 }
 
 impl IntoLua for NumericResult {
@@ -385,6 +601,51 @@ fn try_smart_div<T: NumericValue + 'static>(this: &T, ud: &mlua::AnyUserData) ->
     if let Ok(val) = ud.borrow::<I16>() { return Some(NumericResult::smart_div(this, &*val)); }
     if let Ok(val) = ud.borrow::<I8>() { return Some(NumericResult::smart_div(this, &*val)); }
     if let Ok(val) = ud.borrow::<LuaU256>() { return Some(NumericResult::smart_div(this, &*val)); }
+    None
+}
+
+fn try_smart_bitand<T: NumericValue + 'static>(this: &T, ud: &mlua::AnyUserData) -> Option<NumericResult> {
+    if let Ok(val) = ud.borrow::<U128>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U64>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U32>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U16>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U8>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I128>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I64>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I32>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I16>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I8>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    if let Ok(val) = ud.borrow::<LuaU256>() { return Some(NumericResult::smart_bitand(this, &*val)); }
+    None
+}
+
+fn try_smart_bitor<T: NumericValue + 'static>(this: &T, ud: &mlua::AnyUserData) -> Option<NumericResult> {
+    if let Ok(val) = ud.borrow::<U128>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U64>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U32>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U16>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U8>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I128>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I64>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I32>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I16>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I8>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<LuaU256>() { return Some(NumericResult::smart_bitor(this, &*val)); }
+    None
+}
+
+fn try_smart_bitxor<T: NumericValue + 'static>(this: &T, ud: &mlua::AnyUserData) -> Option<NumericResult> {
+    if let Ok(val) = ud.borrow::<U128>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U64>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U32>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U16>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<U8>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I128>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I64>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I32>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I16>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<I8>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
+    if let Ok(val) = ud.borrow::<LuaU256>() { return Some(NumericResult::smart_bitxor(this, &*val)); }
     None
 }
 
@@ -587,6 +848,89 @@ macro_rules! add_smart_arithmetic_methods {
     };
 }
 
+/*macro_rules! add_smart_bitwise_methods {
+    ($methods:ident, $name:ident, [$($type:ident),*]) => {
+        $methods.add_meta_method(MetaMethod::BAnd, |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_bitand(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot perform bitwise AND with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise AND with non-numeric type".to_string())),
+            }
+        });
+
+        $methods.add_meta_method(MetaMethod::BOr, |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_bitor(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot perform bitwise OR with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise OR with non-numeric type".to_string())),
+            }
+        });
+
+        $methods.add_meta_method(MetaMethod::BXor, |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_bitxor(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot perform bitwise XOR with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise XOR with non-numeric type".to_string())),
+            }
+        });
+
+        $methods.add_meta_method(MetaMethod::Shl, |lua, this, shift: u32| {
+            NumericResult::smart_shl(this, shift).into_lua(lua)
+        });
+
+        $methods.add_meta_method(MetaMethod::Shr, |lua, this, shift: u32| {
+            NumericResult::smart_shr(this, shift).into_lua(lua)
+        });
+
+        $methods.add_meta_method(MetaMethod::BNot, |lua, this, _: ()| {
+            let a_size = this.size_bytes();
+            let a_signed = this.is_signed();
+            
+            if a_size <= 16 {
+                if let Some(a_val) = this.as_u128() {
+                    let result = !a_val;
+                    
+                    if !a_signed {
+                        if a_size == 1 { return U8::new(result as u8).into_lua(lua); }
+                        if a_size == 2 { return U16::new(result as u16).into_lua(lua); }
+                        if a_size == 4 { return U32::new(result as u32).into_lua(lua); }
+                        if a_size == 8 { return U64::new(result as u64).into_lua(lua); }
+                        return U128::new(result).into_lua(lua);
+                    }
+                    
+                    if let Some(a_i) = this.as_i128() {
+                        let result = !a_i;
+                        if a_size == 1 { return I8::new(result as i8).into_lua(lua); }
+                        if a_size == 2 { return I16::new(result as i16).into_lua(lua); }
+                        if a_size == 4 { return I32::new(result as i32).into_lua(lua); }
+                        if a_size == 8 { return I64::new(result as i64).into_lua(lua); }
+                        return I128::new(result).into_lua(lua);
+                    }
+                }
+            }
+            
+            let a_u256 = this.as_u256();
+            let result = !a_u256.0;
+            LuaU256(U256(result)).into_lua(lua)
+        });
+    };
+}*/
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Decode, Encode)]
 pub struct LuaU256(pub U256);
 
@@ -662,6 +1006,30 @@ impl LuaU256 {
         Self(U256(self.0.0.overflowing_mul(other.0.0).0))
     }
 
+    pub fn bitand(self, other: Self) -> Self {
+        Self(U256(self.0.0 & other.0.0))
+    }
+
+    pub fn bitor(self, other: Self) -> Self {
+        Self(U256(self.0.0 | other.0.0))
+    }
+
+    pub fn bitxor(self, other: Self) -> Self {
+        Self(U256(self.0.0 ^ other.0.0))
+    }
+
+    pub fn bitnot(self) -> Self {
+        Self(U256(!self.0.0))
+    }
+
+    pub fn shl(self, shift: u32) -> Self {
+        Self(U256(self.0.0 << shift))
+    }
+
+    pub fn shr(self, shift: u32) -> Self {
+        Self(U256(self.0.0 >> shift))
+    }
+
     pub fn value(self) -> U256 {
         self.0
     }
@@ -723,18 +1091,106 @@ impl UserData for LuaU256 {
         methods.add_function("min", |_, _: ()| Ok(LuaU256::min_value()));
         methods.add_function("max", |_, _: ()| Ok(LuaU256::max_value()));
 
-        methods.add_method("saturating_add", |_, this, other: LuaU256| Ok(this.saturating_add(other)));
-        methods.add_method("saturating_sub", |_, this, other: LuaU256| Ok(this.saturating_sub(other)));
-        methods.add_method("saturating_mul", |_, this, other: LuaU256| Ok(this.saturating_mul(other)));
-        methods.add_method("saturating_div", |_, this, other: LuaU256| Ok(this.saturating_div(other)));
-        methods.add_method("saturating_pow", |_, this, exp: u32| Ok(this.saturating_pow(exp)));
-        methods.add_method("checked_add", |_, this, other: LuaU256| Ok(this.checked_add(other)));
-        methods.add_method("checked_sub", |_, this, other: LuaU256| Ok(this.checked_sub(other)));
-        methods.add_method("checked_mul", |_, this, other: LuaU256| Ok(this.checked_mul(other)));
-        methods.add_method("checked_div", |_, this, other: LuaU256| Ok(this.checked_div(other)));
-        methods.add_method("wrapping_add", |_, this, other: LuaU256| Ok(this.wrapping_add(other)));
-        methods.add_method("wrapping_sub", |_, this, other: LuaU256| Ok(this.wrapping_sub(other)));
-        methods.add_method("wrapping_mul", |_, this, other: LuaU256| Ok(this.wrapping_mul(other)));
+        methods.add_method("add", |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_add(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot add with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot add with non-numeric type".to_string())),
+            }
+        });
+
+        methods.add_method("sub", |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_sub(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot subtract with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot subtract with non-numeric type".to_string())),
+            }
+        });
+
+        methods.add_method("mul", |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_mul(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot multiply with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot multiply with non-numeric type".to_string())),
+            }
+        });
+
+        methods.add_method("div", |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_div(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot divide with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot divide with non-numeric type".to_string())),
+            }
+        });
+
+        methods.add_method("bitand", |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_bitand(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot perform bitwise AND with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise AND with non-numeric type".to_string())),
+            }
+        });
+
+        methods.add_method("bitor", |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_bitor(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot perform bitwise OR with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise OR with non-numeric type".to_string())),
+            }
+        });
+
+        methods.add_method("bitxor", |lua, this, other: Value| {
+            match other {
+                Value::UserData(ud) => {
+                    if let Some(result) = try_smart_bitxor(this, &ud) {
+                        result.into_lua(lua)
+                    } else {
+                        Err(mlua::Error::RuntimeError("Cannot perform bitwise XOR with unknown type".to_string()))
+                    }
+                },
+                _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise XOR with non-numeric type".to_string())),
+            }
+        });
+
+        methods.add_method("bitnot", |_, this, _: ()| Ok(this.bitnot()));
+
+        methods.add_method("shl", |lua, this, shift: u32| {
+            NumericResult::smart_shl(this, shift).into_lua(lua)
+        });
+
+        methods.add_method("shr", |lua, this, shift: u32| {
+            NumericResult::smart_shr(this, shift).into_lua(lua)
+        });
 
         methods.add_method("is_zero", |_, this, _: ()| Ok(this.is_zero()));
         methods.add_method("is_max", |_, this, _: ()| Ok(this.is_max()));
@@ -777,62 +1233,6 @@ macro_rules! define_number_type {
                 Ok(Self(s.parse::<$inner>()?))
             }
 
-            pub fn saturating_add(self, other: Self) -> Self {
-                Self(self.0.saturating_add(other.0))
-            }
-
-            pub fn saturating_sub(self, other: Self) -> Self {
-                Self(self.0.saturating_sub(other.0))
-            }
-
-            pub fn saturating_mul(self, other: Self) -> Self {
-                Self(self.0.saturating_mul(other.0))
-            }
-
-            pub fn saturating_div(self, other: Self) -> Self {
-                if other.0 == 0 {
-                    Self(<$inner>::MAX)
-                } else {
-                    Self(self.0 / other.0)
-                }
-            }
-
-            pub fn saturating_pow(self, exp: u32) -> Self {
-                Self(self.0.saturating_pow(exp))
-            }
-
-            pub fn checked_add(self, other: Self) -> Option<Self> {
-                self.0.checked_add(other.0).map(Self)
-            }
-
-            pub fn checked_sub(self, other: Self) -> Option<Self> {
-                self.0.checked_sub(other.0).map(Self)
-            }
-
-            pub fn checked_mul(self, other: Self) -> Option<Self> {
-                self.0.checked_mul(other.0).map(Self)
-            }
-
-            pub fn checked_div(self, other: Self) -> Option<Self> {
-                if other.0 == 0 {
-                    None
-                } else {
-                    Some(Self(self.0 / other.0))
-                }
-            }
-
-            pub fn wrapping_add(self, other: Self) -> Self {
-                Self(self.0.wrapping_add(other.0))
-            }
-
-            pub fn wrapping_sub(self, other: Self) -> Self {
-                Self(self.0.wrapping_sub(other.0))
-            }
-
-            pub fn wrapping_mul(self, other: Self) -> Self {
-                Self(self.0.wrapping_mul(other.0))
-            }
-
             pub fn value(self) -> $inner {
                 self.0
             }
@@ -872,6 +1272,10 @@ macro_rules! define_number_type {
             pub fn swap_bytes(self) -> Self {
                 Self(self.0.swap_bytes())
             }
+
+            pub fn bitnot(self) -> Self {
+                Self(!self.0)
+            }
         }
 
         impl fmt::Display for $name {
@@ -902,18 +1306,106 @@ macro_rules! define_number_type {
                 methods.add_function("min", |_, _: ()| Ok($name::min_value()));
                 methods.add_function("max", |_, _: ()| Ok($name::max_value()));
 
-                methods.add_method("saturating_add", |_, this, other: $name| Ok(this.saturating_add(other)));
-                methods.add_method("saturating_sub", |_, this, other: $name| Ok(this.saturating_sub(other)));
-                methods.add_method("saturating_mul", |_, this, other: $name| Ok(this.saturating_mul(other)));
-                methods.add_method("saturating_div", |_, this, other: $name| Ok(this.saturating_div(other)));
-                methods.add_method("saturating_pow", |_, this, exp: u32| Ok(this.saturating_pow(exp)));
-                methods.add_method("checked_add", |_, this, other: $name| Ok(this.checked_add(other)));
-                methods.add_method("checked_sub", |_, this, other: $name| Ok(this.checked_sub(other)));
-                methods.add_method("checked_mul", |_, this, other: $name| Ok(this.checked_mul(other)));
-                methods.add_method("checked_div", |_, this, other: $name| Ok(this.checked_div(other)));
-                methods.add_method("wrapping_add", |_, this, other: $name| Ok(this.wrapping_add(other)));
-                methods.add_method("wrapping_sub", |_, this, other: $name| Ok(this.wrapping_sub(other)));
-                methods.add_method("wrapping_mul", |_, this, other: $name| Ok(this.wrapping_mul(other)));
+                methods.add_method("add", |lua, this, other: Value| {
+                    match other {
+                        Value::UserData(ud) => {
+                            if let Some(result) = try_smart_add(this, &ud) {
+                                result.into_lua(lua)
+                            } else {
+                                Err(mlua::Error::RuntimeError("Cannot add with unknown type".to_string()))
+                            }
+                        },
+                        _ => Err(mlua::Error::RuntimeError("Cannot add with non-numeric type".to_string())),
+                    }
+                });
+
+                methods.add_method("sub", |lua, this, other: Value| {
+                    match other {
+                        Value::UserData(ud) => {
+                            if let Some(result) = try_smart_sub(this, &ud) {
+                                result.into_lua(lua)
+                            } else {
+                                Err(mlua::Error::RuntimeError("Cannot subtract with unknown type".to_string()))
+                            }
+                        },
+                        _ => Err(mlua::Error::RuntimeError("Cannot subtract with non-numeric type".to_string())),
+                    }
+                });
+
+                methods.add_method("mul", |lua, this, other: Value| {
+                    match other {
+                        Value::UserData(ud) => {
+                            if let Some(result) = try_smart_mul(this, &ud) {
+                                result.into_lua(lua)
+                            } else {
+                                Err(mlua::Error::RuntimeError("Cannot multiply with unknown type".to_string()))
+                            }
+                        },
+                        _ => Err(mlua::Error::RuntimeError("Cannot multiply with non-numeric type".to_string())),
+                    }
+                });
+
+                methods.add_method("div", |lua, this, other: Value| {
+                    match other {
+                        Value::UserData(ud) => {
+                            if let Some(result) = try_smart_div(this, &ud) {
+                                result.into_lua(lua)
+                            } else {
+                                Err(mlua::Error::RuntimeError("Cannot divide with unknown type".to_string()))
+                            }
+                        },
+                        _ => Err(mlua::Error::RuntimeError("Cannot divide with non-numeric type".to_string())),
+                    }
+                });
+
+                methods.add_method("bitand", |lua, this, other: Value| {
+                    match other {
+                        Value::UserData(ud) => {
+                            if let Some(result) = try_smart_bitand(this, &ud) {
+                                result.into_lua(lua)
+                            } else {
+                                Err(mlua::Error::RuntimeError("Cannot perform bitwise AND with unknown type".to_string()))
+                            }
+                        },
+                        _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise AND with non-numeric type".to_string())),
+                    }
+                });
+
+                methods.add_method("bitor", |lua, this, other: Value| {
+                    match other {
+                        Value::UserData(ud) => {
+                            if let Some(result) = try_smart_bitor(this, &ud) {
+                                result.into_lua(lua)
+                            } else {
+                                Err(mlua::Error::RuntimeError("Cannot perform bitwise OR with unknown type".to_string()))
+                            }
+                        },
+                        _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise OR with non-numeric type".to_string())),
+                    }
+                });
+
+                methods.add_method("bitxor", |lua, this, other: Value| {
+                    match other {
+                        Value::UserData(ud) => {
+                            if let Some(result) = try_smart_bitxor(this, &ud) {
+                                result.into_lua(lua)
+                            } else {
+                                Err(mlua::Error::RuntimeError("Cannot perform bitwise XOR with unknown type".to_string()))
+                            }
+                        },
+                        _ => Err(mlua::Error::RuntimeError("Cannot perform bitwise XOR with non-numeric type".to_string())),
+                    }
+                });
+
+                methods.add_method("bitnot", |_, this, _: ()| Ok(this.bitnot()));
+
+                methods.add_method("shl", |lua, this, shift: u32| {
+                    NumericResult::smart_shl(this, shift).into_lua(lua)
+                });
+
+                methods.add_method("shr", |lua, this, shift: u32| {
+                    NumericResult::smart_shr(this, shift).into_lua(lua)
+                });
 
                 methods.add_method("value", |_, this, _: ()| Ok(this.value()));
                 methods.add_method("is_zero", |_, this, _: ()| Ok(this.is_zero()));
@@ -969,6 +1461,7 @@ macro_rules! define_number_type {
                             let s = s.to_str()?;
                             $name::from_str(&s).map_err(|e| mlua::Error::RuntimeError(format!("Invalid {}: {}", stringify!($name).to_lowercase(), e)))
                         },
+                        mlua::Value::Nil => Ok($name::new(0)),
                         _ => Err(mlua::Error::RuntimeError(format!("{}() expects number or string", stringify!($name).to_lowercase())))
                     }
                 })?)?;
@@ -1002,8 +1495,7 @@ impl_numeric_value_signed!(I32, i32);
 impl_numeric_value_signed!(I16, i16);
 impl_numeric_value_signed!(I8, i8);
 
-// Add shorthand for U256 after the LuaU256 impl
-pub fn register_u256_shorthand(lua: &Lua) -> LuaResult<()> {
+pub fn register_luau256_shorthand(lua: &Lua) -> LuaResult<()> {
     let globals = lua.globals();
     globals.set("u256", lua.create_function(|_, value: mlua::Value| {
         match value {
@@ -1025,39 +1517,35 @@ pub fn register_u256_shorthand(lua: &Lua) -> LuaResult<()> {
                 let s = s.to_str()?;
                 LuaU256::from_str(&s).map_err(|e| mlua::Error::RuntimeError(format!("Invalid u256: {}", e)))
             },
+            mlua::Value::Nil => Ok(LuaU256::from_u128(0)),
             _ => Err(mlua::Error::RuntimeError("u256() expects number or string".to_string()))
         }
     })?)?;
     Ok(())
 }
 
-// Master registration function
-pub fn register_all_numeric_libraries(lua: &Lua) -> LuaResult<()> {
-    info!("Registering numeric libraries");
-    register_luau256_library(lua)?;
-    register_u128_library(lua)?;
-    register_u64_library(lua)?;
-    register_u32_library(lua)?;
-    register_u16_library(lua)?;
-    register_u8_library(lua)?;
-    register_i128_library(lua)?;
-    register_i64_library(lua)?;
-    register_i32_library(lua)?;
-    register_i16_library(lua)?;
-    register_i8_library(lua)?;
-    
-    info!("Registering shorthand functions");
-    register_u256_shorthand(lua)?;
-    register_u128_shorthand(lua)?;
-    register_u64_shorthand(lua)?;
-    register_u32_shorthand(lua)?;
-    register_u16_shorthand(lua)?;
-    register_u8_shorthand(lua)?;
-    register_i128_shorthand(lua)?;
-    register_i64_shorthand(lua)?;
-    register_i32_shorthand(lua)?;
-    register_i16_shorthand(lua)?;
-    register_i8_shorthand(lua)?;
-    
-    Ok(())
+macro_rules! register_all_numeric_types {
+    ($($name:ident),*) => {
+        pub fn register_all_numeric_libraries(lua: &Lua) -> LuaResult<()> {
+            info!("Registering numeric libraries");
+            $(
+                paste::paste! {
+                    [<register_ $name:lower _library>](lua)?;
+                }
+            )*
+            
+            info!("Registering shorthand functions");
+            $(
+                paste::paste! {
+                    [<register_ $name:lower _shorthand>](lua)?;
+                }
+            )*
+            
+            Ok(())
+        }
+    };
 }
+
+register_all_numeric_types![
+    LuaU256, U128, U64, U32, U16, U8, I128, I64, I32, I16, I8
+];

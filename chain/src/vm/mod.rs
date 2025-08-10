@@ -7,6 +7,8 @@ use {
 };
 
 pub mod contract;
+pub mod traits;
+
 #[cfg(feature = "evm")]
 pub mod evm;
 #[cfg(feature = "lvm")]

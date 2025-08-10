@@ -105,15 +105,15 @@ impl EVMContract {
 }
 
 impl ContractTrait for EVMContract {
-    fn from_code(data: &[&dyn Any]) -> Self {
+    fn from_code(data: &[&dyn Any]) -> Result<Self, Error> {
         let storage = data[0].downcast_ref::<Arc<Box<dyn DatabaseTrait>>>().expect("Invalid database");
         let address = data[1].downcast_ref::<Address>();
         let code = data[2].downcast_ref::<&[u8]>().expect("Invalid code");
-        Self { 
+        Ok(Self { 
             storage: storage.clone(), 
             address: address.cloned(), 
             code: Some(code.to_vec()) 
-        }
+        })
     }
 
     fn get_code(&self) -> Option<&[u8]> {
@@ -123,7 +123,7 @@ impl ContractTrait for EVMContract {
         }
     }
 
-    fn upgrade(&self, _code: Vec<u8>) -> Result<(), Error> {
+    fn upgrade(&self, _from: &Address, _code: &[u8]) -> Result<(), Error> {
         unimplemented!("upgrade not implemented")
     }
 
@@ -131,7 +131,7 @@ impl ContractTrait for EVMContract {
         self.address.as_ref()
     }
 
-    fn call_function(&self, _function: Hash, _args: &[&ContractValueType]) -> Result<Vec<u8>, Error> {
+    fn call_function(&self, _from: &Address, _function: Hash, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
         unimplemented!("call_function not implemented")
     }
 

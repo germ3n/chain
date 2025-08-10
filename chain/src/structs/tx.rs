@@ -6,6 +6,7 @@ use {
     crate::serialize::binary::to_bytes,
     serde::{Serialize, Deserialize},
     crate::crypto::hash::HashableBytes,
+    std::borrow::Cow,
 };
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
@@ -77,12 +78,13 @@ impl SignableBytes for Tx {
 }
 
 impl HashableBytes for Tx {
-    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
-        to_bytes(&(
+    fn get_hashable_bytes(&self) -> Result<Cow<[u8]>, Error> {
+        let bytes = to_bytes(&(
             &self.header.sender, 
             &self.header.version, 
             &self.data
-        ))
+        ))?;
+        Ok(Cow::Owned(bytes))
     }
 }
 

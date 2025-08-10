@@ -8,12 +8,17 @@ use {
     crate::db::DatabaseTrait,
     mlua::Lua,
     crate::db::open_db,
+    crate::crypto::hash::HashAlgorithm,
+    mlua::prelude::*,
+    mlua::{Function, Value},
 };
 
+
 pub mod numlib;
+pub mod compiler;
 
 pub struct LVM {
-    pub state: Option<LVMState>,
+    pub state: Option<Arc<LVMState>>,
 }
 
 impl VMTrait for LVM {
@@ -21,7 +26,7 @@ impl VMTrait for LVM {
         let account_store_path = args[0].downcast_ref::<String>().expect("Failed to downcast account store path");
         let contract_store_path = args[1].downcast_ref::<String>().expect("Failed to downcast contract store path");
         let transaction_store_path = args[2].downcast_ref::<String>().expect("Failed to downcast transaction store path");
-        self.state = Some(LVMState::new(account_store_path, contract_store_path, transaction_store_path)?);
+        self.state = Some(Arc::new(LVMState::new(account_store_path, contract_store_path, transaction_store_path)?));
         Ok(())
     }
 
@@ -112,21 +117,73 @@ impl LuaEnv {
             lua: Lua::new(),
         }
     }
+
+    pub fn create_enviroment(&self) -> Result<(), Error> {
+        self.lua.sandbox(false)?;
+
+        let globals = self.lua.globals();
+        let env = self.lua.create_table()?;
+
+        for pair in globals.pairs::<String, Value>() {
+            if let Ok((key, value)) = pair {
+                match key.as_str() {
+                    "_contract" | "_sender" => continue,
+                    _ => ()
+                }
+
+                //todo!("deep-copy value maybe")
+                env.raw_set(key, value)?;
+            }
+        }
+
+        self.lua.sandbox(true).map_err(|e| Error::from(e))
+    }
+
+    pub fn get_enviroment(&self, env_key: &String) -> Option<LuaTable> {
+        match self.lua.named_registry_value(&env_key).ok() {
+            Some(table) => Some(table),
+            None => {
+                self.create_enviroment().ok()?;
+                self.lua.named_registry_value(&env_key).ok()
+            }
+        }
+    }
+
+    pub fn load_bytecode(&self, bytecode: &[u8]) -> Result<Function, Error> {
+        self.lua.load(bytecode).into_function().map_err(|e| Error::from(e))
+    }
 }
 
 pub struct Contract {
     pub address: Option<Address>,
     pub code: Option<Vec<u8>>,
+    pub lvm_state: Arc<LVMState>,
+    pub chunk: Option<Function>,
 }
 
 impl ContractTrait for Contract {
-    fn from_code(data: &[&dyn Any]) -> Self {
+    fn from_code(data: &[&dyn Any]) -> Result<Self, Error> {
         let address = data[0].downcast_ref::<Address>().unwrap();
         let code = data[1].downcast_ref::<&[u8]>().unwrap();
-        Self { 
+        let lvm_state = data[2].downcast_ref::<Arc<LVMState>>().unwrap();
+
+        let env = lvm_state.lua.get_enviroment(&get_env_key(address)).expect("Failed to get enviroment");
+
+        let chunk = lvm_state.lua.load_bytecode(code);
+        if let Err(e) = chunk {
+            return Err(e);
+        }
+
+        chunk.as_ref().expect("Failed to load bytecode").set_environment(env)?;
+        let chunk = chunk.unwrap();
+        chunk.call::<bool>(())?; 
+
+        Ok(Self { 
             address: Some(address.clone()),
             code: Some(code.to_vec()),
-        }
+            lvm_state: lvm_state.clone(),
+            chunk: Some(chunk),
+        })
     }
 
     fn get_code(&self) -> Option<&[u8]> {
@@ -140,12 +197,18 @@ impl ContractTrait for Contract {
         self.address.as_ref()
     }
 
-    fn upgrade(&self, _code: Vec<u8>) -> Result<(), Error> {
-        unimplemented!("upgrade not implemented")
+    fn upgrade(&self, from: &Address, _code: &[u8]) -> Result<(), Error> {
+        match self.call_function(from, Hash::from_bytes(HashAlgorithm::Blake3_256, b"can_upgrade"), &[&ContractValueType::Address(from.clone())]) {
+            Ok(ContractValueType::Bool(true)) => Ok(()),
+            _ => Err(Error::msg("Failed to upgrade contract, no permission")),
+        }
     }
 
-    fn call_function(&self, _function: Hash, _args: &[&ContractValueType]) -> Result<Vec<u8>, Error> {
-        unimplemented!("call_function not implemented")
+    fn call_function(&self, from: &Address, _function: Hash, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
+        let lua = &self.lvm_state.lua.lua;
+        let env = self.lvm_state.lua.get_enviroment(&self.get_env_key()).expect("Failed to get enviroment");
+
+        Ok(ContractValueType::Bool(true))
     }
 
     fn get_from_storage(&self, _key: &[u8]) -> Result<Vec<u8>, Error> {
@@ -155,4 +218,14 @@ impl ContractTrait for Contract {
     fn put_to_storage(&self, _key: &[u8], _value: &[u8]) -> Result<(), Error> {
         unimplemented!("put_to_storage not implemented")
     }
+}
+
+impl Contract {
+    pub fn get_env_key(&self) -> String {
+        get_env_key(self.address.as_ref().unwrap())
+    }
+}
+
+pub fn get_env_key(address: &Address) -> String {
+    format!("env_{}", address)
 }

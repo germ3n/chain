@@ -1,7 +1,7 @@
 use {
     crate::{
         crypto::{hash::Hash, keypair::{Signature, PublicKey}}, 
-        structs::account::Address,
+        structs::{account::Address, num::U256},
     }, 
     anyhow::Error, 
     std::any::Any, 
@@ -21,21 +21,22 @@ pub enum ContractValueType {
     I64(i64) = 7,
     U128(u128) = 8,
     I128(i128) = 9,
-    String(String) = 10,
-    Bytes(Vec<u8>) = 11,
-    Hash(Hash) = 12,
-    Address(Address) = 13,
-    Signature(Signature) = 14,
-    PublicKey(PublicKey) = 15,
-    Bool(bool) = 16,
+    U256(U256) = 10,
+    String(String) = 11,
+    Bytes(Vec<u8>) = 12,
+    Hash(Hash) = 13,
+    Address(Address) = 14,
+    Signature(Signature) = 15,
+    PublicKey(PublicKey) = 16,
+    Bool(bool) = 17,
 }
 
 pub trait ContractTrait: Any + Send {
-    fn from_code(data: &[&dyn Any]) -> Self where Self: Sized;
+    fn from_code(data: &[&dyn Any]) -> Result<Self, Error> where Self: Sized;
     fn get_code(&self) -> Option<&[u8]>;
-    fn upgrade(&self, code: Vec<u8>) -> Result<(), Error>;
+    fn upgrade(&self, from: &Address, code: &[u8]) -> Result<(), Error>;
     fn get_address(&self) -> Option<&Address>;
-    fn call_function(&self, function: Hash, args: &[&ContractValueType]) -> Result<Vec<u8>, Error>;
+    fn call_function(&self, from: &Address, function: Hash, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
     fn get_from_storage(&self, key: &[u8]) -> Result<Vec<u8>, Error>;
     fn put_to_storage(&self, key: &[u8], value: &[u8]) -> Result<(), Error>;
 }

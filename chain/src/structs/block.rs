@@ -5,7 +5,8 @@ use {
     crate::crypto::hash::{Hashable, HashableBytes},
     anyhow::Error,
     serde::{Serialize, Deserialize},
-    crate::serialize::binary::to_bytes
+    crate::serialize::binary::to_bytes,
+    std::borrow::Cow,
 };
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
@@ -20,6 +21,7 @@ pub struct BlockHeader {
 pub struct Block {
     pub header: BlockHeader,
     pub txs: Vec<Tx>,
+    
 }
 
 impl Block {
@@ -78,13 +80,14 @@ impl Block {
 }
 
 impl HashableBytes for Block {
-    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
-        to_bytes(&(
+    fn get_hashable_bytes(&self) -> Result<Cow<[u8]>, Error> {
+        let bytes = to_bytes(&(
             &self.header.prev_hash,
             &self.header.nonce,
             &self.header.timestamp,
             &self.txs,
-        ))
+        ))?;
+        Ok(Cow::Owned(bytes))
     }
 }
 

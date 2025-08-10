@@ -5,6 +5,7 @@ use {
     anyhow::Error,
     xxhash_rust::xxh3::xxh3_64,
     serde::{Serialize, Deserialize},
+    std::borrow::Cow,
 };
 
 #[cfg(feature = "keccak")]
@@ -158,31 +159,25 @@ pub trait Hashable {
 }
 
 pub trait HashableBytes {
-    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error>;
+    fn get_hashable_bytes(&self) -> Result<Cow<[u8]>, Error>;
 }
 
 impl<T: SerializableBytes + HashableBytes> Hashable for T
 where T: Sized {
     fn hash(&self, algorithm: HashAlgorithm) -> Hash {
-        Hash::from_bytes(algorithm, &self.get_hashable_bytes().expect("Failed to encode hashable"))
+        let bytes = self.get_hashable_bytes().expect("Failed to encode hashable");
+        Hash::from_bytes(algorithm, &bytes)
     }
 
     fn hash_with_callback(&self, algorithm: HashAlgorithm, callback: impl FnOnce(&mut dyn std::io::Write)) -> Hash {
         Hash::with_hasher(algorithm, |hasher: &mut dyn std::io::Write| {
-            //hasher.write(self.to_bytes().expect("Failed to encode hashable").as_slice()).expect("Failed to write to hasher");
             callback(hasher);
         })
     }
 }
 
-/*impl<T: SerializableBytes> HashableBytes for T {
-    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
-        self.to_bytes()
-    }
-}*/
-
 impl<T: AsRef<[u8]>> HashableBytes for T {
-    fn get_hashable_bytes(&self) -> Result<Vec<u8>, Error> {
-        Ok(self.as_ref().to_vec())
+    fn get_hashable_bytes(&self) -> Result<Cow<[u8]>, Error> {
+        Ok(Cow::Borrowed(self.as_ref()))
     }
 }
