@@ -1,5 +1,6 @@
 #[macro_use] extern crate log;
 
+pub mod r#const;
 pub mod config;
 pub mod structs;
 pub mod db;

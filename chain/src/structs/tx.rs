@@ -33,7 +33,7 @@ pub struct TxCoinbaseData {
     pub amount: u128,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, PartialOrd, Ord, Eq)]
 #[repr(u32)]
 pub enum TxVersion {
     V1 = 0,

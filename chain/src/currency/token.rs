@@ -3,7 +3,7 @@ use {
     anyhow::Error,
     std::any::Any,
     crate::structs::account::Address,
-    crate::config::POWERS_OF_10,
+    crate::r#const::POWERS_OF_10,
     std::sync::{RwLock},
     num_traits::ops::saturating::{SaturatingAdd, SaturatingSub},
 };
@@ -18,7 +18,7 @@ pub struct TokenCurrency {
 }
 
 impl TokenCurrency {
-    pub fn new(name: String, symbol: String, decimal_places: u32, contract_address: Address, issued_supply: u128, max_circulating_supply: u128) -> Result<Self, Error> {
+    pub fn new(name: String, symbol: String, decimal_places: u32, contract_address: Address, issued_supply: Amount, max_circulating_supply: Amount) -> Result<Self, Error> {
         if decimal_places > POWERS_OF_10.len() as u32 {
             return Err(Error::msg(format!("Decimal places must be less than {}", POWERS_OF_10.len())));
         }
@@ -28,8 +28,14 @@ impl TokenCurrency {
             symbol,
             decimal_places,
             contract_address,
-            issued_supply: RwLock::new(Amount::U128(issued_supply)),
-            max_circulating_supply: RwLock::new(Amount::U128(max_circulating_supply)),
+            issued_supply: RwLock::new(match issued_supply {
+                Amount::U128(val) => Amount::U128(val),
+                Amount::U256(val) => Amount::U256(val),
+            }),
+            max_circulating_supply: RwLock::new(match max_circulating_supply {
+                Amount::U128(val) => Amount::U128(val),
+                Amount::U256(val) => Amount::U256(val),
+            }),
         })
     }
 }

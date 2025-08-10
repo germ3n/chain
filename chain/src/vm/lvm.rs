@@ -1,5 +1,5 @@
 use {
-    crate::vm::{VMTrait, contract::{ContractTrait, ContractValueType}},
+    crate::vm::{VMTrait, contract::{ContractTrait, ContractValueType}, VMType},
     crate::structs::{tx::Tx, account::Address},
     anyhow::Error,
     crate::crypto::hash::Hash,
@@ -73,6 +73,10 @@ impl VMTrait for LVM {
         //unimplemented!("get_state not implemented")
         Ok(self.state.as_ref().unwrap())
     }
+
+    fn get_vm_type(&self) -> VMType {
+        VMType::LVM
+    }
 }
 
 impl LVM {
@@ -117,7 +121,7 @@ impl LuaEnv {
         }
     }
 
-    pub fn create_enviroment(&self) -> Result<(), Error> {
+    pub fn create_enviroment(&self) -> Result<LuaTable, Error> {
         self.lua.sandbox(false)?;
 
         let globals = self.lua.globals();
@@ -135,16 +139,20 @@ impl LuaEnv {
             }
         }
 
-        self.lua.sandbox(true).map_err(|e| Error::from(e))
+        self.lua.sandbox(true).map_err(|e| Error::from(e))?;
+
+        Ok(env)
     }
 
-    pub fn get_enviroment(&self, env_key: &String) -> Option<LuaTable> {
-        match self.lua.named_registry_value(&env_key).ok() {
-            Some(table) => Some(table),
-            None => {
-                self.create_enviroment().ok()?;
-                self.lua.named_registry_value(&env_key).ok()
+    pub fn get_enviroment(&self, env_key: Option<&str>) -> Option<LuaTable> {
+        match env_key {
+            Some(key) => {
+                match self.lua.named_registry_value(key).ok() {
+                    Some(table) => Some(table),
+                    None => self.create_enviroment().ok()
+                }
             }
+            None => self.create_enviroment().ok()
         }
     }
 
@@ -158,30 +166,35 @@ pub struct Contract {
     pub code: Option<Vec<u8>>,
     pub lvm_state: Arc<LVMState>,
     pub chunk: Option<Function>,
+    pub env: Option<LuaTable>,
 }
 
 impl ContractTrait for Contract {
     fn from_code(data: &[&dyn Any]) -> Result<Self, Error> {
-        let address = data[0].downcast_ref::<Address>().unwrap();
+        let address = data[0].downcast_ref::<Option<Address>>().unwrap();
         let code = data[1].downcast_ref::<&[u8]>().unwrap();
         let lvm_state = data[2].downcast_ref::<Arc<LVMState>>().unwrap();
 
-        let env = lvm_state.lua.get_enviroment(&get_env_key(address)).expect("Failed to get enviroment");
+        let env = match address {
+            Some(address) => lvm_state.lua.get_enviroment(Some(&get_env_key(address))).expect("Failed to get enviroment"),
+            None => lvm_state.lua.create_enviroment().expect("Failed to create enviroment"),
+        };
 
         let chunk = lvm_state.lua.load_bytecode(code);
         if let Err(e) = chunk {
             return Err(e);
         }
 
-        chunk.as_ref().expect("Failed to load bytecode").set_environment(env)?;
+        chunk.as_ref().expect("Failed to load bytecode").set_environment(env.clone())?;
         let chunk = chunk.unwrap();
         chunk.call::<bool>(())?; 
 
         Ok(Self { 
-            address: Some(address.clone()),
+            address: address.clone(),
             code: Some(code.to_vec()),
             lvm_state: lvm_state.clone(),
             chunk: Some(chunk),
+            env: Some(env),
         })
     }
 
@@ -206,7 +219,7 @@ impl ContractTrait for Contract {
 
     fn call_function(&self, _from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
         let lua = &self.lvm_state.lua.lua;
-        let env = self.lvm_state.lua.get_enviroment(&self.get_env_key()).expect("Failed to get enviroment");
+        let env = self.env.as_ref().ok_or(Error::msg("Failed to get enviroment"))?;
 
         let function = env.raw_get::<Function>(lua.create_string(&function.as_bytes())?)?;
         let lua_args: Result<Vec<_>, _> = args.iter().map(|arg| (*arg).clone().into_lua(lua)).collect();
@@ -226,8 +239,11 @@ impl ContractTrait for Contract {
 }
 
 impl Contract {
-    pub fn get_env_key(&self) -> String {
-        get_env_key(self.address.as_ref().unwrap())
+    pub fn get_env_key(&self) -> Option<String> {
+        match self.address {
+            Some(ref address) => Some(get_env_key(address)),
+            None => None,
+        }
     }
 }
 

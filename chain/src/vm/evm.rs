@@ -1,5 +1,5 @@
 use {
-    crate::vm::VMTrait,
+    crate::vm::{VMTrait, VMType},
     crate::structs::tx::Tx,
     anyhow::Error,
     crate::crypto::hash::Hash,
@@ -61,6 +61,10 @@ impl VMTrait for EVM {
             Some(state) => Ok(state as &dyn Any),
             None => Err(Error::msg("EVM state not initialized"))
         }
+    }
+
+    fn get_vm_type(&self) -> VMType {
+        VMType::EVM
     }
 }
 

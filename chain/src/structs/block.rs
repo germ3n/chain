@@ -15,6 +15,7 @@ pub struct BlockHeader {
     pub prev_hash: Hash,
     pub nonce: u64,
     pub timestamp: u64,
+    pub config_checksum: Hash,
 }
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
@@ -32,10 +33,12 @@ impl Block {
                 prev_hash: Hash::null(),
                 nonce: 0,
                 timestamp: 0,
+                config_checksum: Hash::null(),
             },
             txs: vec![],
         };
         block.header.hash = block.hash(HashAlgorithm::Blake3_256);
+        block.header.config_checksum = block.hash(HashAlgorithm::XXHash3_64);
         block
     }
 
@@ -46,10 +49,12 @@ impl Block {
                 prev_hash: prev_hash,
                 nonce: 0,
                 timestamp: 0,
+                config_checksum: Hash::null(),
             },
             txs: vec![Tx::coinbase()],
         };
         block.header.hash = block.hash(HashAlgorithm::Blake3_256);
+        block.header.config_checksum = block.hash(HashAlgorithm::XXHash3_64);
         block
     }
 
@@ -95,11 +100,12 @@ impl std::fmt::Display for Block {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f, 
-            "Block {{ hash: 0x{}, prev_hash: 0x{}, nonce: {}, timestamp: {}, txs: {{ {} }} }}", 
+            "Block {{ hash: 0x{}, prev_hash: 0x{}, nonce: {}, timestamp: {}, config_checksum: 0x{}, txs: {{ {} }} }}", 
             self.header.hash, 
             self.header.prev_hash, 
             self.header.nonce, 
             self.header.timestamp, 
+            self.header.config_checksum,
             self.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect::<Vec<_>>().into_iter().map(|hash| format!("0x{}", hash)).collect::<Vec<_>>().join(", ")
         )
     }

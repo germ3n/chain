@@ -70,11 +70,18 @@ impl Mempool {
     pub fn tx_count(&self) -> usize {
         self.tx_count.load(Ordering::Relaxed)
     }
+
+    pub fn get_ordered_txs(&self) -> Vec<Arc<Tx>> {
+        let mut txs = self.txs.read().unwrap().values().cloned().collect::<Vec<_>>();
+        txs.sort_by(|a, b| a.header.version.cmp(&b.header.version));
+        txs
+    }
 }
 
 impl std::fmt::Display for Mempool {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Mempool {{ txs: {{ {} }} }}", 
+        write!(f, "Mempool {{ tx_count: {}, txs: {{ {} }} }}", 
+            self.tx_count.load(Ordering::Relaxed),
             self.txs.read().unwrap().iter().map(|(hash, tx)| format!("0x{}: 0x{}", hash, tx.hash(HashAlgorithm::Blake3_256))).collect::<Vec<_>>().join(", ")
         )
     }

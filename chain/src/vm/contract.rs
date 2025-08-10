@@ -46,6 +46,20 @@ pub trait ContractTrait: Any {
     }
 }
 
+pub struct ContractAnalysisOptions {
+    pub max_call_depth: u32, // max number of calls before getting put into last batch, to prevent DoS
+}
+
+pub trait ContractAnalysis {
+    fn interferes_with(&self, other: &dyn ContractAnalysis, options: &ContractAnalysisOptions) -> Result<bool, Error>;
+}
+
+pub trait ContractAnalyzerTrait: ContractTrait {
+    fn analyze(&self) -> Result<(), Error>;
+    fn get_analysis(&self) -> Result<&dyn ContractAnalysis, Error>;
+    fn get_analysis_options(&self) -> &ContractAnalysisOptions;
+}
+
 impl IntoLua for ContractValueType {
     fn into_lua(self, lua: &Lua) -> Result<Value, LuaError> {
         match self {

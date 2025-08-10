@@ -1,3 +1,6 @@
+pub mod pow;
+pub mod pos;
+
 use {
     crate::ctx,
     std::sync::atomic::Ordering,
@@ -10,10 +13,19 @@ use {
     std::sync::Arc,
 };
 
+pub trait ConsensusLayerTrait {
+    fn initialize(&mut self) -> Result<(), Error>;
+    fn start_consensus(&self) -> Result<(), Error>;
+}
+
 pub fn main_loop() -> Result<(), Error> {
     info!("Initializing VM");
     ctx!(vms).write().unwrap().iter_mut().for_each(|vm| {
-        Arc::get_mut(vm).expect("Failed to get VM").initialize(&[&"_accounts".to_string(), &"_contracts".to_string(), &"_transactions".to_string()]).expect("Failed to initialize VM")
+        Arc::get_mut(vm).expect("Failed to get VM").initialize(&[
+            &"_accounts".to_string(), 
+            &"_contracts".to_string(), 
+            &"_transactions".to_string()
+        ]).expect("Failed to initialize VM")
     });
     info!("VM initialized");
 

@@ -14,6 +14,15 @@ pub mod evm;
 #[cfg(feature = "lvm")]
 pub mod lvm;
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[repr(u8)]
+pub enum VMType {
+    #[cfg(feature = "evm")]
+    EVM = 0,
+    #[cfg(feature = "lvm")]
+    LVM = 1,
+}
+
 pub trait VMTrait {
     fn initialize(&mut self, args: &[&dyn Any]) -> Result<(), Error>;
     fn prepare_execution(&self) -> Result<(), Error>;
@@ -25,4 +34,5 @@ pub trait VMTrait {
     fn deploy_contract(&self, code: &[u8]) -> Result<Address, Error>;
     fn get_contract(&self, hash: &Hash) -> Result<Option<&dyn ContractTrait>, Error>;
     fn get_state(&self) -> Result<&dyn Any, Error>;
+    fn get_vm_type(&self) -> VMType;
 }
