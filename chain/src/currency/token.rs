@@ -6,6 +6,7 @@ use {
     crate::r#const::POWERS_OF_10,
     std::sync::{RwLock},
     num_traits::ops::saturating::{SaturatingAdd, SaturatingSub},
+    crate::structs::num::U256,
 };
 
 pub struct TokenCurrency {
@@ -108,7 +109,10 @@ impl CurrencyInfoTrait for TokenCurrency {
     }
 
     fn one_currency_unit(&self) -> Amount {
-        Amount::U128(POWERS_OF_10[self.decimal_places as usize])
+        match *self.issued_supply.read().unwrap() {
+            Amount::U128(_) => Amount::U128(POWERS_OF_10[self.decimal_places as usize]),
+            Amount::U256(_) => Amount::U256(U256::from(POWERS_OF_10[self.decimal_places as usize])),
+        }
     }
 
     fn max_circulating_supply(&self) -> Amount {

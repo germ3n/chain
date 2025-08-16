@@ -6,7 +6,7 @@ use {
     std::any::Any,
     crate::db::DatabaseTrait,
     std::sync::Arc,
-    crate::vm::contract::{ContractTrait, ContractValueType},
+    crate::vm::contract::{ContractTrait, ContractValueType, VMStorageTrait},
     crate::structs::account::Address,
     crate::db::open_db,
 };
@@ -92,13 +92,13 @@ impl EVMState {
     }
 }
 
-pub struct EVMContract {
+pub struct Contract {
     pub storage: Arc<Box<dyn DatabaseTrait>>,
     pub address: Option<Address>,
     pub code: Option<Vec<u8>>,
 }
 
-impl EVMContract {
+impl Contract {
     pub fn from_code(storage: Arc<Box<dyn DatabaseTrait>>, address: Option<Address>, code: Vec<u8>) -> Self {
         Self { 
             storage, 
@@ -108,7 +108,7 @@ impl EVMContract {
     }
 }
 
-impl ContractTrait for EVMContract {
+impl ContractTrait for Contract {
     fn from_code(data: &[&dyn Any]) -> Result<Self, Error> {
         let storage = data[0].downcast_ref::<Arc<Box<dyn DatabaseTrait>>>().expect("Invalid database");
         let address = data[1].downcast_ref::<Address>();
@@ -135,10 +135,16 @@ impl ContractTrait for EVMContract {
         self.address.as_ref()
     }
 
+    fn get_function(&self, _function: &str) -> Result<Arc<dyn Any>, Error> {
+        unimplemented!("get_function not implemented")
+    }
+
     fn call_function(&self, _from: &Address, _function: &str, _args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
         unimplemented!("call_function not implemented")
     }
+}
 
+impl VMStorageTrait for Contract {
     fn get_from_storage(&self, _key: &[u8]) -> Result<Vec<u8>, Error> {
         unimplemented!("get_from_storage not implemented")
     }

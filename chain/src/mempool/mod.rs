@@ -25,7 +25,7 @@ impl Mempool {
         }
     }
 
-    pub fn add_tx(&mut self, tx: Tx) -> Result<(), Error> {
+    pub fn add_tx(&self, tx: Tx) -> Result<(), Error> {
         match self.txs.write().unwrap().insert(tx.hash(HashAlgorithm::Blake3_256), Arc::new(tx)) {
             Some(_) => Err(anyhow::Error::msg("Transaction already exists in mempool")),
             None => {
@@ -35,7 +35,7 @@ impl Mempool {
         }
     }
 
-    pub fn remove_tx(&mut self, hash: Hash) -> Result<(), Error> {
+    pub fn remove_tx(&self, hash: Hash) -> Result<(), Error> {
         match self.txs.write().unwrap().remove(&hash) {
             Some(_) => {
                 self.tx_count.fetch_sub(1, Ordering::Relaxed);
@@ -50,10 +50,6 @@ impl Mempool {
             Some(tx) => Ok(tx.clone()),
             None => Err(anyhow::Error::msg("Transaction not found in mempool")),
         }
-    }
-
-    pub fn for_each_tx(&self, callback: impl Fn(&Hash, &Tx)) {
-        self.txs.read().unwrap().iter().for_each(|(hash, tx)| callback(hash, tx));
     }
 
     pub fn remove_txs(&self, hashes: HashSet<Hash>) {
@@ -71,10 +67,8 @@ impl Mempool {
         self.tx_count.load(Ordering::Relaxed)
     }
 
-    pub fn get_ordered_txs(&self) -> Vec<Arc<Tx>> {
-        let mut txs = self.txs.read().unwrap().values().cloned().collect::<Vec<_>>();
-        txs.sort_by(|a, b| a.header.version.cmp(&b.header.version));
-        txs
+    pub fn get_tx_batches(&self) -> Vec<Vec<Arc<Tx>>> {
+        self.txs.read().unwrap().values().cloned().collect::<Vec<_>>().chunks(100).map(|chunk| chunk.to_vec()).collect()
     }
 }
 

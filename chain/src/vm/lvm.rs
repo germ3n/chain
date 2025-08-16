@@ -1,5 +1,5 @@
 use {
-    crate::vm::{VMTrait, contract::{ContractTrait, ContractValueType}, VMType},
+    crate::vm::{VMTrait, contract::{ContractTrait, ContractValueType, VMStorageTrait}, VMType},
     crate::structs::{tx::Tx, account::Address},
     anyhow::Error,
     crate::crypto::hash::Hash,
@@ -10,11 +10,16 @@ use {
     crate::db::open_db,
     mlua::prelude::*,
     mlua::{Function, Value},
+    std::collections::HashMap,
+    std::sync::RwLock,
+    crate::crypto::hash::{Hashable, HashAlgorithm},
 };
 
 
-pub mod numlib;
+pub mod num;
 pub mod compiler;
+pub mod analyzer;
+pub mod currency;
 
 pub struct LVM {
     pub state: Option<Arc<LVMState>>,
@@ -107,7 +112,7 @@ impl LVMState {
             lua: LuaEnv::new()
         };
         
-        numlib::register_all_numeric_libraries(&state.lua.lua)?;
+        num::register_all_numeric_libraries(&state.lua.lua)?;
 
         info!("LVM state initialized");
         Ok(state)
@@ -167,6 +172,7 @@ pub struct Contract {
     pub lvm_state: Arc<LVMState>,
     pub chunk: Option<Function>,
     pub env: Option<LuaTable>,
+    pub functions: RwLock<HashMap<Hash, Arc<Function>>>,
 }
 
 impl ContractTrait for Contract {
@@ -187,7 +193,14 @@ impl ContractTrait for Contract {
 
         chunk.as_ref().expect("Failed to load bytecode").set_environment(env.clone())?;
         let chunk = chunk.unwrap();
-        chunk.call::<bool>(())?; 
+        chunk.call::<bool>(())?;
+        
+        let mut functions = HashMap::new();
+        for pair in env.pairs::<String, Function>() {
+            if let Ok((key, value)) = pair {
+                functions.insert(key.hash(HashAlgorithm::XXHash3_64), Arc::new(value));
+            }
+        }
 
         Ok(Self { 
             address: address.clone(),
@@ -195,6 +208,7 @@ impl ContractTrait for Contract {
             lvm_state: lvm_state.clone(),
             chunk: Some(chunk),
             env: Some(env),
+            functions: RwLock::new(functions),
         })
     }
 
@@ -217,18 +231,18 @@ impl ContractTrait for Contract {
         unimplemented!("perform_upgrade not implemented")
     }
 
-    fn call_function(&self, _from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
-        let lua = &self.lvm_state.lua.lua;
-        let env = self.env.as_ref().ok_or(Error::msg("Failed to get enviroment"))?;
-
-        let function = env.raw_get::<Function>(lua.create_string(&function.as_bytes())?)?;
-        let lua_args: Result<Vec<_>, _> = args.iter().map(|arg| (*arg).clone().into_lua(lua)).collect();
-        match function.call::<ContractValueType>(lua_args?) {
-            Ok(b) => Ok(b),
-            Err(e) => Err(Error::from(e)),
-        }
+    fn get_function(&self, function: &str) -> Result<Arc<dyn Any>, Error> {
+        let function = self.functions.read().unwrap().get(&function.hash(HashAlgorithm::XXHash3_64)).ok_or(Error::msg("Function not found"))?.clone();
+        Ok(function)
     }
 
+    fn call_function(&self, _from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
+        let lua_args: Result<Vec<_>, _> = args.iter().map(|arg| (*arg).clone().into_lua(&self.lvm_state.lua.lua)).collect();
+        self.get_function(function)?.downcast_ref::<Function>().unwrap().call::<ContractValueType>(lua_args?).map_err(Error::from)
+    }
+}
+
+impl VMStorageTrait for Contract {
     fn get_from_storage(&self, _key: &[u8]) -> Result<Vec<u8>, Error> {
         unimplemented!("get_from_storage not implemented")
     }

@@ -4,6 +4,8 @@ use {
     crate::vm::contract::ContractTrait,
     anyhow::Error,
     std::any::Any,
+    bincode::{Encode, Decode},
+    serde::{Serialize, Deserialize},
 };
 
 pub mod contract;
@@ -13,14 +15,22 @@ pub mod traits;
 pub mod evm;
 #[cfg(feature = "lvm")]
 pub mod lvm;
+#[cfg(feature = "svm")]
+pub mod svm;
+#[cfg(feature = "pvm")]
+pub mod pvm;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Encode, Decode, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum VMType {
     #[cfg(feature = "evm")]
     EVM = 0,
     #[cfg(feature = "lvm")]
     LVM = 1,
+    #[cfg(feature = "svm")]
+    SVM = 2,
+    #[cfg(feature = "pvm")]
+    PVM = 3,
 }
 
 pub trait VMTrait {

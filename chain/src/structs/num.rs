@@ -4,9 +4,10 @@ use {
     num_traits::ops::saturating::{SaturatingAdd, SaturatingSub},
     std::ops::{Add, Sub},
     std::cmp::{PartialOrd, Ordering},
+    serde::{Serialize, Deserialize},
 };
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, PartialOrd, Ord, Copy)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, PartialOrd, Ord, Copy, Serialize, Deserialize)]
 pub struct U256(pub PrimitiveU256);
 
 impl Encode for U256 {

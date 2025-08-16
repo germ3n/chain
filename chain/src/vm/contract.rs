@@ -4,7 +4,8 @@ use {
         structs::{account::Address, num::U256},
     }, anyhow::Error, bincode::{Decode, Encode},
     mlua::{prelude::*, Error as LuaError, FromLua, IntoLua, Value}, 
-    std::any::Any
+    std::any::Any,
+    std::sync::Arc,
 };
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
@@ -31,19 +32,23 @@ pub enum ContractValueType {
     Bool(bool) = 18,
 }
 
-pub trait ContractTrait: Any {
+pub trait ContractTrait: Any + VMStorageTrait {
     fn from_code(data: &[&dyn Any]) -> Result<Self, Error> where Self: Sized;
     fn get_code(&self) -> Option<&[u8]>;
     fn perform_upgrade(&self, from: &Address, code: &[u8]) -> Result<(), Error>;
     fn get_address(&self) -> Option<&Address>;
+    fn get_function(&self, function: &str) -> Result<Arc<dyn Any>, Error>;
     fn call_function(&self, from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
-    fn get_from_storage(&self, key: &[u8]) -> Result<Vec<u8>, Error>;
-    fn put_to_storage(&self, key: &[u8], value: &[u8]) -> Result<(), Error>;
 
     fn hash_function_name(function: &str) -> String // needs _ prefix
     where Self: Sized {
         format!("_0x{}", function.as_bytes().hash(HashAlgorithm::XXHash3_64))
     }
+}
+
+pub trait VMStorageTrait: Send + Sync {
+    fn get_from_storage(&self, key: &[u8]) -> Result<Vec<u8>, Error>;
+    fn put_to_storage(&self, key: &[u8], value: &[u8]) -> Result<(), Error>;
 }
 
 pub struct ContractAnalysisOptions {

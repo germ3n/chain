@@ -7,33 +7,35 @@ use {
     serde::{Serialize, Deserialize},
     crate::crypto::hash::HashableBytes,
     std::borrow::Cow,
+    crate::currency::Amount,
 };
 
-#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
 pub struct TxHeader {
     pub signature: Option<Signature>,
     pub version: TxVersion,
     pub sender: PublicKey,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
 pub struct Tx {
     pub header: TxHeader,
     pub data: TxData,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
 #[repr(u16)]
 pub enum TxData {
     Coinbase(TxCoinbaseData) = 0,
+    Batch(Vec<Tx>) = 1,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
 pub struct TxCoinbaseData {
-    pub amount: u128,
+    pub amount: Amount,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, PartialOrd, Ord, Eq)]
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, PartialOrd, Ord, Eq, Hash)]
 #[repr(u32)]
 pub enum TxVersion {
     V1 = 0,
@@ -48,7 +50,7 @@ impl Tx {
                 signature: None,
             },
             data: TxData::Coinbase(TxCoinbaseData {
-                amount: ctx!().calc_block_reward(),
+                amount: Amount::U128(ctx!().calc_block_reward()),
             }),
         }
     }
@@ -107,6 +109,7 @@ impl std::fmt::Display for TxData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             TxData::Coinbase(data) => write!(f, "TxData::Coinbase({})", data.amount),
+            TxData::Batch(txs) => write!(f, "TxData::Batch({})", txs.len()),
         }
     }
 }

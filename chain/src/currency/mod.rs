@@ -8,9 +8,10 @@ use {
     crate::structs::account::Address,
     crate::structs::num::U256,
     bincode::{Encode, Decode},
+    serde::{Serialize, Deserialize},
 };
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum Amount {
     U128(u128) = 0,
@@ -71,5 +72,14 @@ where
         decoder: &mut D,
     ) -> Result<Self, bincode::error::DecodeError> {
         Self::decode(decoder)
+    }
+}
+
+impl std::fmt::Display for Amount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Amount::U128(val) => write!(f, "{}", val),
+            Amount::U256(_) => unimplemented!("U256 not supported"),
+        }
     }
 }

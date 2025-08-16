@@ -15,7 +15,7 @@ use {
 
 pub trait ConsensusLayerTrait {
     fn initialize(&mut self) -> Result<(), Error>;
-    fn start_consensus(&self) -> Result<(), Error>;
+    fn create_block(&self) -> Result<Block, Error>;
 }
 
 pub fn main_loop() -> Result<(), Error> {
@@ -34,10 +34,6 @@ pub fn main_loop() -> Result<(), Error> {
         let block_height = ctx!(block_height).load(Ordering::Relaxed);
         info!("Mining block height: {}", block_height);
 
-        ctx!(mempool).for_each_tx(|hash, tx| {
-            info!("Mempool tx: 0x{}: {}", hash, tx);
-        });
-
         let mut block = Block::coinbase(ctx!(curr_top).read().unwrap().clone());
         block.validate()?;
 
@@ -49,19 +45,21 @@ pub fn main_loop() -> Result<(), Error> {
 
             for vm in ctx!(vms).read().unwrap().iter() {
                 vm.prepare_execution()?;
-                for tx in block.txs.iter().skip(1) { // skip coinbase tx
-                    ctx!(event_manager).add_event(Event::NewTx(tx.hash(HashAlgorithm::Blake3_256)));
+                for batch in ctx!(mempool).get_tx_batches() {
+                    for tx in batch {
+                        ctx!(event_manager).add_event(Event::NewTx(tx.hash(HashAlgorithm::Blake3_256)));
 
-                    vm.start_tx()?;
-                    match vm.execute_tx(tx) {
-                        Ok(_) => {
-                            info!("Tx 0x{} executed successfully", tx.hash(HashAlgorithm::Blake3_256));
-                            vm.commit_tx()?;
-                        },
-                        Err(e) => {
-                            error!("Tx 0x{} execution failed: {}", tx.hash(HashAlgorithm::Blake3_256), e);
-                            vm.rollback_tx()?;
-                        },
+                        vm.start_tx()?;
+                        match vm.execute_tx(&tx) {
+                            Ok(_) => {
+                                info!("Tx 0x{} executed successfully", tx.hash(HashAlgorithm::Blake3_256));
+                                vm.commit_tx()?;
+                            },
+                            Err(e) => {
+                                error!("Tx 0x{} execution failed: {}", tx.hash(HashAlgorithm::Blake3_256), e);
+                                vm.rollback_tx()?;
+                            },
+                        }
                     }
                 }
                 vm.finalize_execution()?;
