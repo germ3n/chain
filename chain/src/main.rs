@@ -24,15 +24,16 @@ use {
     crate::crypto::keypair::Keypair,
     std::sync::atomic::Ordering,
     crate::rpc::{RpcHost, RpcTrait},
+    chain::document,
 };
 
 #[derive(Parser, Debug)]
-
 struct Args {
     #[arg(short, long)]
     miner_pubkey: Option<String>,
 }
 
+#[document(summary = "Main entry point for the blockchain node", returns = "Does not return (runs until termination)")]
 fn main() {
     pretty_env_logger::init();
     let _args = Args::parse();

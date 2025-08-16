@@ -51,6 +51,8 @@ primitive-types = { version = "0.13.1", features = ["serde"] }
 num-traits = "0.2.19"
 solana-svm = { version = "2.3.7", optional = true }
 rustpython-vm = { version = "0.4.0", optional = true }
+quote = "1.0.40"
+syn = { version = "2.0.105", features = ["full"] }
 
 [features]
 default = [
@@ -59,7 +61,7 @@ default = [
     "edblake", "secp256k1", "ed25519", 
     "halving-bitcoin", 
     "rocksdb", 
-    "rpc-json"
+    "rpc-json", "ether-rpc"
 ]
 evm = ["revm"]
 lvm = ["mlua"]
@@ -69,3 +71,7 @@ rpc-json = ["astra", "matchit"]
 keccak = ["sha3"]
 svm = ["solana-svm"]
 pvm = ["rustpython-vm"]
+ether-rpc = []
+
+[lib]
+proc-macro = true
