@@ -6,7 +6,7 @@ use {
     mlua::{prelude::*, Error as LuaError, FromLua, IntoLua, Value}, 
     std::any::Any,
     std::sync::Arc,
-    chain::document,
+    cutedogs::document,
 };
 
 #[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
@@ -42,7 +42,7 @@ pub trait ContractTrait: Any + VMStorageTrait {
     fn call_function(&self, from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
 
     #[document(summary = "Hashes a function name", params = {
-        function: "The function to hash"
+        "function": "The function to hash"
     }, returns = "The hashed function name")]
     fn hash_function_name(function: &str) -> String // needs _ prefix
     where Self: Sized {

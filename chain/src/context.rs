@@ -8,7 +8,7 @@ use {
         vm::{evm::EVM, lvm::LVM, VMTrait},
         structs::block::Block,
     },
-    chain::document,
+    cutedogs::document,
     std::sync::{atomic::{AtomicU32, AtomicU64, Ordering}, Arc, OnceLock, RwLock},
 };
 
@@ -36,8 +36,8 @@ impl Context {
     #[document(
         summary = "Creates a new blockchain context with specified virtual machine",
         params = {
-            vm: "Optional virtual machine instance for smart contract execution",
-            config: "Blockchain configuration including consensus parameters and network settings"
+            "vm": "Optional virtual machine instance for smart contract execution",
+            "config": "Blockchain configuration including consensus parameters and network settings"
         },
         returns = "A fully initialized Context ready for blockchain operations"
     )]
@@ -57,7 +57,7 @@ impl Context {
             mempool: Mempool::new(),
             config,
             event_manager: EventManager::new(),
-            db: RwLock::new(Arc::new(Box::new(TransactionRocksDB::open(&[&"db"]).expect("Failed to open database")))),
+            db: RwLock::new(Arc::new(Box::new(TransactionRocksDB::open(&[&"db".to_string()]).expect("Failed to open database")))),
             #[cfg(feature = "rpc-json")]
             rpc: JsonRpc::new(),
         }
@@ -77,7 +77,7 @@ impl Context {
     #[document(
         summary = "Creates a new context with an EVM virtual machine",
         params = {
-            config: "Blockchain configuration including consensus parameters and network settings"
+            "config": "Blockchain configuration including consensus parameters and network settings"
         },
         returns = "A fully initialized Context with EVM support"
     )]
@@ -91,7 +91,7 @@ impl Context {
     #[document(
         summary = "Creates a new context with an LVM virtual machine",
         params = {
-            config: "Blockchain configuration including consensus parameters and network settings"
+            "config": "Blockchain configuration including consensus parameters and network settings"
         },
         returns = "A fully initialized Context with LVM support"
     )]

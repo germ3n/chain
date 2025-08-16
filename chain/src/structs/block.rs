@@ -7,6 +7,7 @@ use {
     serde::{Serialize, Deserialize},
     crate::serialize::binary::to_bytes,
     std::borrow::Cow,
+    cutedogs::document,
 };
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize)]
@@ -26,6 +27,7 @@ pub struct Block {
 }
 
 impl Block {
+    #[document(summary = "Create the genesis block", returns = "The genesis block")]
     pub fn genesis() -> Self {
         let mut block = Self {
             header: BlockHeader {
@@ -42,6 +44,9 @@ impl Block {
         block
     }
 
+    #[document(summary = "Creates a coinbase block", params = {
+        "prev_hash": "The previous block hash"
+    }, returns = "The coinbase block")]
     pub fn coinbase(prev_hash: Hash) -> Self {
         let mut block = Self {
             header: BlockHeader {
@@ -58,6 +63,7 @@ impl Block {
         block
     }
 
+    #[document(summary = "Ensures the first transaction is a coinbase transaction", returns = "The result of the validation")]
     pub fn ensure_first_tx_is_coinbase(&self) -> Result<(), Error> {
         if !matches!(self.txs[0].data, TxData::Coinbase(_)) {
             return Err(Error::msg("First tx is not coinbase"));
@@ -65,6 +71,7 @@ impl Block {
         Ok(())
     }
 
+    #[document(summary = "Ensures the block has only one coinbase transaction", returns = "The result of the validation")]
     pub fn ensure_single_coinbase(&self) -> Result<(), Error> {
         for tx in self.txs.iter().skip(1) {
             if matches!(tx.data, TxData::Coinbase(_)) {
@@ -74,6 +81,7 @@ impl Block {
         Ok(())
     }
 
+    #[document(summary = "Validates a block", returns = "The result of the validation")]
     pub fn validate(&self) -> Result<(), Error> {
         self.ensure_first_tx_is_coinbase()?;
         self.ensure_single_coinbase()?;

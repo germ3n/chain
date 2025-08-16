@@ -11,6 +11,7 @@ use {
     crate::serialize::binary::SerializableBytes,
     crate::db::DatabaseTrait,
     std::sync::Arc,
+    cutedogs::document,
 };
 
 pub trait ConsensusLayerTrait {
@@ -18,6 +19,7 @@ pub trait ConsensusLayerTrait {
     fn create_block(&self) -> Result<Block, Error>;
 }
 
+#[document(summary = "Main consensus loop", returns = "The result of the consensus loop")]
 pub fn main_loop() -> Result<(), Error> {
     info!("Initializing VM");
     ctx!(vms).write().unwrap().iter_mut().for_each(|vm| {

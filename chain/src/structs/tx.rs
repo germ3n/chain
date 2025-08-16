@@ -8,6 +8,7 @@ use {
     crate::crypto::hash::HashableBytes,
     std::borrow::Cow,
     crate::currency::Amount,
+    cutedogs::document,
 };
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
@@ -42,6 +43,7 @@ pub enum TxVersion {
 }
 
 impl Tx {
+    #[document(summary = "Creates a coinbase transaction", returns = "The coinbase transaction")]
     pub fn coinbase() -> Self {
         Self {
             header: TxHeader {
@@ -55,12 +57,18 @@ impl Tx {
         }
     }
 
+    #[document(summary = "Signs a transaction", params = {
+        "keypair": "The keypair to sign the transaction with"
+    }, returns = "The result of the signing")]
     pub fn sign(&mut self, keypair: &Keypair) -> Result<(), Error> {
         self.header.signature = Some(keypair.sign(self.to_signable_bytes()?.as_slice())?);
         //self.header.signature.as_ref().unwrap().verify(&keypair, self.to_bytes()?.as_slice())?;
         Ok(())
     }
 
+    #[document(summary = "Verifies a transaction", params = {
+        "keypair": "The keypair to verify the transaction with"
+    }, returns = "The result of the verification")]
     pub fn verify(&self, keypair: &Keypair) -> Result<(), Error> {
         match &self.header.signature {
             Some(signature) => signature.verify(&keypair, self.to_signable_bytes()?.as_slice()),

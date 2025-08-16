@@ -4,6 +4,7 @@ use {
     bincode::{Encode, Decode},
     crate::crypto::hash::HashableBytes,
     std::borrow::Cow,
+    cutedogs::document,
 };
 
 #[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
@@ -21,6 +22,7 @@ pub struct Account {
 }
 
 impl Account {
+    #[document(summary = "Creates a new account", returns = "The new account")]
     pub fn new() -> Self {
         Self { 
             nonce: 0,
@@ -28,6 +30,9 @@ impl Account {
         }
     }
 
+    #[document(summary = "Creates an address from a public key", params = {
+        "pubkey": "The public key to create an address from"
+    }, returns = "The address")]
     pub fn address_from_pubkey(pubkey: &PublicKey) -> Result<Address, Error> {
         match pubkey {
             PublicKey::Ed25519(pubkey) => Ok(Address::Ed25519(match pubkey.hash(HashAlgorithm::Blake3_256) {
@@ -42,11 +47,15 @@ impl Account {
         }
     }
 
+    #[document(summary = "Increments the nonce", returns = "The new nonce")]
     pub fn increment_nonce(&mut self) -> u64 {
         self.nonce += 1;
         self.nonce
     }
 
+    #[document(summary = "Transfers an amount of currency", params = {
+        "amount": "The amount of currency to transfer"
+    }, returns = "The old balance")]
     pub fn transfer(&mut self, amount: u128) -> Result<u128, Error> {
         if self.balance < amount {
             return Err(Error::msg("Insufficient balance"));
@@ -56,6 +65,9 @@ impl Account {
         Ok(old_balance)
     }
 
+    #[document(summary = "Receives an amount of currency", params = {
+        "amount": "The amount of currency to receive"
+    }, returns = "The old balance")]
     pub fn receive(&mut self, amount: u128) -> Result<u128, Error> {
         if amount == 0 {
             return Err(Error::msg("Amount must be greater than 0"));

@@ -24,7 +24,7 @@ use {
     crate::crypto::keypair::Keypair,
     std::sync::atomic::Ordering,
     crate::rpc::{RpcHost, RpcTrait},
-    chain::document,
+    cutedogs::document,
 };
 
 #[derive(Parser, Debug)]

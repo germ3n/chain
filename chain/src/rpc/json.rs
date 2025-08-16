@@ -6,6 +6,7 @@ use {
     matchit::{Router},
     std::any::Any,
     crate::rpc::routes::node_rpc,
+    cutedogs::document,
 };
 
 pub struct JsonRpc {
@@ -13,6 +14,7 @@ pub struct JsonRpc {
 }
 
 impl JsonRpc {
+    #[document(summary = "Creates a new JSON RPC", returns = "The new JSON RPC")]
     pub fn new() -> Self {
         Self {
             router: Arc::new({
@@ -26,6 +28,10 @@ impl JsonRpc {
 }
 
 impl RpcTrait for JsonRpc {
+    #[document(summary = "Listens for RPC requests", params = {
+        "host": "The host to listen on",
+        "port": "The port to listen on"
+    }, returns = "The result of the listening")]
     fn listen(&self, host: RpcHost, port: u16) -> Result<(), Error> {
         info!("Listening on {}:{}", host, port);
         let router = Arc::clone(&self.router);
@@ -62,6 +68,10 @@ impl RpcTrait for JsonRpc {
     }
 }
 
+#[document(summary = "Verifies a request", params = {
+    "req": "The request to verify",
+    "info": "The connection info"
+}, returns = "The result of the verification")]
 fn verify_request(_req: &Request, _info: &ConnectionInfo) -> Result<(), Error> {
     //unimplemented!("verify_request not implemented")
     Ok(())

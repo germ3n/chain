@@ -1,7 +1,7 @@
 use {
     bincode::{Encode, Decode},
     serde::{Serialize, Deserialize},
-    chain::document,
+    cutedogs::document,
 };
 
 #[derive(Debug, Clone, Encode, Decode, Serialize, Deserialize)]

@@ -6,6 +6,7 @@ use {
     std::sync::atomic::Ordering,
     log::info,
     crate::ctx,
+    cutedogs::document,
 };
 
 pub struct PoWConfig {
@@ -17,6 +18,7 @@ pub struct PoW {
 }
 
 impl ConsensusLayerTrait for PoW {
+    #[document(summary = "Initializes the PoW consensus layer", returns = "The result of the initialization")]
     fn initialize(&mut self) -> Result<(), Error> {
         self.config.replace(PoWConfig {
             hash_algorithm: HashAlgorithm::Blake3_256,
@@ -25,6 +27,7 @@ impl ConsensusLayerTrait for PoW {
         Ok(())
     }
 
+    #[document(summary = "Creates a block for the PoW consensus layer", returns = "The created block")]
     fn create_block(&self) -> Result<Block, Error> {
         info!("Starting PoW consensus");
         info!("Mining block");

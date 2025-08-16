@@ -6,6 +6,7 @@ use {
     xxhash_rust::xxh3::xxh3_64,
     serde::{Serialize, Deserialize},
     std::borrow::Cow,
+    cutedogs::document,
 };
 
 #[cfg(feature = "keccak")]
@@ -65,10 +66,15 @@ impl<'de> Deserialize<'de> for Hash {
 }
 
 impl Hash {
+    #[document(summary = "Creates a null hash", returns = "The null hash")]
     pub fn null() -> Self {
         Self::Null
     }
 
+    #[document(summary = "Hashes with a callback", params = {
+        "algorithm": "The algorithm to hash with",
+        "callback": "The callback to be called with the hasher"
+    }, returns = "The resulting hash")]
     pub fn with_hasher(algorithm: HashAlgorithm, callback: impl FnOnce(&mut dyn std::io::Write)) -> Self {
         match algorithm {
             HashAlgorithm::XXHash3_64 => {
@@ -101,6 +107,10 @@ impl Hash {
         }
     }
 
+    #[document(summary = "Hashes bytes", params = {
+        "algorithm": "The algorithm to hash with",
+        "bytes": "The bytes to hash"
+    }, returns = "The resulting hash")]
     pub fn from_bytes(algorithm: HashAlgorithm, bytes: &[u8]) -> Self {
         match algorithm {
             HashAlgorithm::XXHash3_64 => {
@@ -165,17 +175,27 @@ pub trait HashableBytes {
 
 impl<T: SerializableBytes + HashableBytes> Hashable for T
 where T: Sized {
+    #[document(summary = "Hashes an object", params = {
+        "algorithm": "The algorithm to hash with"
+    }, returns = "The resulting hash")]
     fn hash(&self, algorithm: HashAlgorithm) -> Hash {
         let bytes = self.get_hashable_bytes().expect("Failed to encode hashable");
         Hash::from_bytes(algorithm, &bytes)
     }
-
+     
+    #[document(summary = "Hashes with a callback", params = {
+        "algorithm": "The algorithm to hash with",
+        "callback": "The callback to be called with the hasher"
+    }, returns = "The resulting hash")]
     fn hash_with_callback(&self, algorithm: HashAlgorithm, callback: impl FnOnce(&mut dyn std::io::Write)) -> Hash {
         Hash::with_hasher(algorithm, |hasher: &mut dyn std::io::Write| {
             callback(hasher);
         })
     }
 
+    #[document(summary = "Hashes bytes", params = {
+        "algorithm": "The algorithm to hash with"
+    }, returns = "The hashed bytes")]
     fn hash_bytes(&self, algorithm: HashAlgorithm) -> Vec<u8> {
         match self.hash(algorithm) {
             Hash::Blake3_256(hash) => hash.to_vec(),
@@ -185,6 +205,7 @@ where T: Sized {
 }
 
 impl<T: AsRef<[u8]>> HashableBytes for T {
+    #[document(summary = "Gets the hashable bytes", returns = "The hashable bytes")]
     fn get_hashable_bytes(&self) -> Result<Cow<[u8]>, Error> {
         Ok(Cow::Borrowed(self.as_ref()))
     }

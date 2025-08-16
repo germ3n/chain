@@ -5,6 +5,7 @@ use {
     std::sync::atomic::Ordering,
     serde_json::{Map, Value as JsonValue},
     crate::structs::block::Block,
+    cutedogs::document,
 };
 
 macro_rules! json_obj {
@@ -17,6 +18,7 @@ macro_rules! json_obj {
     }};
 }
 
+#[document(summary = "Gets the height of the blockchain", returns = "The height of the blockchain")]
 pub fn get_height(_message: &[&dyn Any]) -> (RpcResponse, u16) {
     let (top_block, height) = {
         let top_block = ctx!(curr_top).read().expect("Failed to read curr_top");
@@ -30,6 +32,7 @@ pub fn get_height(_message: &[&dyn Any]) -> (RpcResponse, u16) {
     )).expect("Failed to serialize response")), 200)
 }
 
+#[document(summary = "Gets the genesis block of the blockchain", returns = "The genesis block of the blockchain")]
 pub fn get_block(_message: &[&dyn Any]) -> (RpcResponse, u16) {
     (RpcResponse::Success(serde_json::to_vec(&json_obj!(
         "block" => serde_json::to_value(Block::genesis()).expect("Failed to serialize block"),

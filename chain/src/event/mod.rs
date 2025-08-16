@@ -6,6 +6,7 @@ use {
     crate::structs::account::Address,
     crate::currency::Amount,
     std::collections::HashMap,
+    cutedogs::document,
 };
 
 #[derive(Debug, PartialEq, Encode, Decode, Eq)]
@@ -29,12 +30,16 @@ pub struct EventManager {
 }
 
 impl EventManagerTrait for EventManager {
+    #[document(summary = "Creates a new event manager", returns = "The new event manager")]
     fn new() -> Self {
         Self {
             events: RwLock::new(Vec::new()),
         }
     }
 
+    #[document(summary = "Adds an event to the event manager", params = {
+        "event": "The event to add"
+    })]
     fn add_event(&self, event: Event) {
         self.events.write().unwrap().push(event);
     }

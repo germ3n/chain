@@ -6,6 +6,7 @@ use {
     std::any::Any,
     crate::crypto::hash::{Hash, HashAlgorithm},
     std::sync::Arc,
+    cutedogs::document,
 };
 
 pub trait DatabaseTrait: Send + Sync {
@@ -23,10 +24,17 @@ pub trait TransactionTrait: Send {
     fn rollback(&mut self) -> Result<(), Error>;
 }
 
+#[document(summary = "Hashes a key", params = {
+    "key": "The key to hash"
+}, returns = "The hashed key")]
 pub fn hash_key(key: &[u8]) -> Hash {
     Hash::from_bytes(HashAlgorithm::Blake3_256, key)
 }
 
+#[document(summary = "Hashes a key with a salt", params = {
+    "salt": "The salt to hash the key with",
+    "key": "The key to hash"
+}, returns = "The hashed key")]
 pub fn hash_key_salted(salt: &[u8], key: &[u8]) -> Hash {
     Hash::with_hasher(HashAlgorithm::Blake3_256, |hasher: &mut dyn std::io::Write| {
         hasher.write(salt).expect("Failed to write salt to hasher");
@@ -34,7 +42,9 @@ pub fn hash_key_salted(salt: &[u8], key: &[u8]) -> Hash {
     })
 }
 
+#[document(summary = "Opens a database", params = {
+    "path": "The path to the database"
+}, returns = "The opened database")]
 pub fn open_db(path: String) -> Result<Arc<Box<dyn DatabaseTrait>>, Error> {
-    let path: &'static str = Box::leak(path.into_boxed_str());
     Ok(Arc::new(Box::new(rocksdb::TransactionRocksDB::open(&[&path])?)))
 }
