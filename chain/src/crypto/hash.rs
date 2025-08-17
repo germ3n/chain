@@ -15,6 +15,7 @@ use {
     sha3::Digest as Keccak256Digest,
 };
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum HashAlgorithm {
     XXHash3_64,
     #[cfg(feature = "blake3")]
@@ -29,7 +30,7 @@ pub enum HashAlgorithm {
     Keccak256,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, Hash, PartialOrd, Ord)]
 #[repr(u8)]
 pub enum Hash {
     Null = 0,
@@ -142,6 +143,13 @@ impl Hash {
             }
         }
     }
+
+    pub fn get_bytes(&self) -> &[u8] {
+        match self {
+            Hash::Blake3_256(hash) => hash,
+            _ => panic!("Invalid hash"),
+        }
+    }
 }
 
 impl std::fmt::Display for Hash {
@@ -208,5 +216,26 @@ impl<T: AsRef<[u8]>> HashableBytes for T {
     #[document(summary = "Gets the hashable bytes", returns = "The hashable bytes")]
     fn get_hashable_bytes(&self) -> Result<Cow<[u8]>, Error> {
         Ok(Cow::Borrowed(self.as_ref()))
+    }
+}
+
+impl TryFrom<u8> for HashAlgorithm {
+    type Error = anyhow::Error;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(HashAlgorithm::XXHash3_64),
+            #[cfg(feature = "blake3")]
+            1 => Ok(HashAlgorithm::Blake3_256),
+            #[cfg(feature = "blake3")]
+            2 => Ok(HashAlgorithm::Blake3_512),
+            #[cfg(feature = "sha2")]
+            3 => Ok(HashAlgorithm::Sha256),
+            #[cfg(feature = "sha3")]
+            4 => Ok(HashAlgorithm::Sha3),
+            #[cfg(feature = "keccak")]
+            5 => Ok(HashAlgorithm::Keccak256),
+            _ => Err(anyhow::anyhow!("Invalid hash algorithm")),
+        }
     }
 }

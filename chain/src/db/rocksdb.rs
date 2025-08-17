@@ -113,8 +113,7 @@ impl<'a> TransactionTrait for Transaction<'a> {
     }, returns = "The raw bytes")]
     fn get_raw_bytes(&self, key: &[u8]) -> Result<Option<Vec<u8>>, Error> {
         let tx = self.tx.as_ref().ok_or(Error::msg("Transaction already consumed"))?;
-        let value = tx.get(key)?;
-        Ok(value)
+        tx.get(key).map_err(Error::from)
     }
 
     #[document(summary = "Puts a raw bytes into the transaction", params = {
@@ -123,21 +122,18 @@ impl<'a> TransactionTrait for Transaction<'a> {
     }, returns = "The result of the operation")]
     fn put_raw_bytes(&self, key: &[u8], value: &[u8]) -> Result<(), Error> {
         let tx = self.tx.as_ref().ok_or(Error::msg("Transaction already consumed"))?;
-        tx.put(key, value).map_err(Error::from)?;
-        Ok(())
+        tx.put(key, value).map_err(Error::from)
     }
 
     #[document(summary = "Commits the transaction", returns = "The result of the commit")]
     fn commit(&mut self) -> Result<(), Error> {
         let tx = self.tx.take().ok_or(Error::msg("Transaction already consumed"))?;
-        tx.commit().map_err(Error::from)?;
-        Ok(())
+        tx.commit().map_err(Error::from)
     }   
 
     #[document(summary = "Rolls back the transaction", returns = "The result of the rollback")]
     fn rollback(&mut self) -> Result<(), Error> {
         let tx = self.tx.take().ok_or(Error::msg("Transaction already consumed"))?;
-        tx.rollback().map_err(Error::from)?;
-        Ok(())
+        tx.rollback().map_err(Error::from)
     }
 }

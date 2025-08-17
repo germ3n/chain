@@ -21,6 +21,7 @@ pub mod num;
 pub mod compiler;
 pub mod analyzer;
 pub mod currency;
+pub mod types;
 
 pub struct LVM {
     pub state: Option<Arc<LVMState>>,

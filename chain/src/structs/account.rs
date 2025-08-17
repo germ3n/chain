@@ -82,6 +82,14 @@ impl Address {
     pub fn null() -> Self {
         Self::Null
     }
+
+    pub fn algorithm_id(&self) -> u8 {
+        match self {
+            Address::Null => 0,
+            Address::Ed25519(_) => 1,
+            Address::EdBlake(_) => 2,
+        }
+    }
 }
 
 impl HashableBytes for Address {

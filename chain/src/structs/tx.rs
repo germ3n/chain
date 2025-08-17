@@ -62,14 +62,13 @@ impl Tx {
     }, returns = "The result of the signing")]
     pub fn sign(&mut self, keypair: &Keypair) -> Result<(), Error> {
         self.header.signature = Some(keypair.sign(self.to_signable_bytes()?.as_slice())?);
-        //self.header.signature.as_ref().unwrap().verify(&keypair, self.to_bytes()?.as_slice())?;
-        Ok(())
+        self.verify_signature(keypair)
     }
 
     #[document(summary = "Verifies a transaction", params = {
         "keypair": "The keypair to verify the transaction with"
     }, returns = "The result of the verification")]
-    pub fn verify(&self, keypair: &Keypair) -> Result<(), Error> {
+    pub fn verify_signature(&self, keypair: &Keypair) -> Result<(), Error> {
         match &self.header.signature {
             Some(signature) => signature.verify(&keypair, self.to_signable_bytes()?.as_slice()),
             None => return Err(anyhow::Error::msg("No signature")),

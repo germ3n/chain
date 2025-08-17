@@ -7,7 +7,7 @@ use {
     crate::crypto::hash::Hash,
     anyhow::Error,
     std::sync::Arc,
-    std::collections::HashSet,
+    std::collections::{HashSet, BTreeSet},
     std::sync::atomic::AtomicUsize,
     std::sync::atomic::Ordering,
     cutedogs::document,
@@ -15,7 +15,28 @@ use {
 
 pub struct Mempool {
     pub txs: RwLock<HashMap<Hash, Arc<Tx>>>,
+    pub txs_by_fee: RwLock<BTreeSet<MempoolEntry>>,
     pub tx_count: AtomicUsize,
+}
+
+#[derive(Eq, PartialEq, Clone)]
+pub struct MempoolEntry {
+    fee: u64,
+    tx: Arc<Tx>,
+    tx_hash: Hash,
+}
+
+impl Ord for MempoolEntry {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.fee.cmp(&self.fee)
+             .then_with(|| self.tx_hash.cmp(&other.tx_hash))
+    }
+}
+
+impl PartialOrd for MempoolEntry {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
 }
 
 impl Mempool {
@@ -23,6 +44,7 @@ impl Mempool {
     pub fn new() -> Self {
         Self { 
             txs: RwLock::new(HashMap::new()),
+            txs_by_fee: RwLock::new(BTreeSet::new()),
             tx_count: AtomicUsize::new(0),
         }
     }
@@ -85,6 +107,11 @@ impl Mempool {
     #[document(summary = "Gets the transactions in the mempool in batches", returns = "The transactions in the mempool in batches")]
     pub fn get_tx_batches(&self) -> Vec<Vec<Arc<Tx>>> {
         self.txs.read().unwrap().values().cloned().collect::<Vec<_>>().chunks(100).map(|chunk| chunk.to_vec()).collect()
+    }
+
+    #[document(summary = "Gets the transactions in the mempool sorted by fee", returns = "The transactions in the mempool sorted by fee")]
+    pub fn get_txs_by_fee(&self) -> Vec<Arc<Tx>> {
+        self.txs_by_fee.read().unwrap().iter().map(|entry| entry.tx.clone()).collect()
     }
 }
 
