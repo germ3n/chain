@@ -114,12 +114,16 @@ pub fn create_address_lib(lua: &Lua) -> LuaResult<LuaTable> {
         lua.create_function(|_, (_, s, addr_type): (LuaTable, String, Option<u8>)| {
             let s = if s.starts_with("0x") { &s[2..] } else { &s };
             let bytes = hex::decode(s).map_err(LuaError::external)?;
-            if bytes.len() != 32 {
-                return Err(LuaError::external("Invalid address length"));
-            }
             let address = match addr_type.unwrap_or(Address::Ed25519([0; 32]).algorithm_id()) {
-                1 => Address::Ed25519(bytes.try_into().map_err(|_| LuaError::external("Invalid address length"))?),
-                2 => Address::EdBlake(bytes.try_into().map_err(|_| LuaError::external("Invalid address length"))?),
+                x if x == Address::Ed25519([0; 32]).algorithm_id() => match bytes.len() {
+                    32 => Address::Ed25519(bytes.try_into().unwrap()),
+                    _ => return Err(LuaError::external("Invalid address length")),
+                },
+                x if x == Address::EdBlake([0; 32]).algorithm_id() => match bytes.len() {
+                    32 => Address::EdBlake(bytes.try_into().unwrap()),
+                    _ => return Err(LuaError::external("Invalid address length")),
+                },
+                0 => Address::Null,
                 _ => return Err(LuaError::external("Unsupported address type")),
             };
 

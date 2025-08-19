@@ -224,17 +224,17 @@ impl TryFrom<u8> for HashAlgorithm {
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
-            0 => Ok(HashAlgorithm::XXHash3_64),
+            x if x == HashAlgorithm::XXHash3_64 as u8 => Ok(HashAlgorithm::XXHash3_64),
             #[cfg(feature = "blake3")]
-            1 => Ok(HashAlgorithm::Blake3_256),
+            x if x == HashAlgorithm::Blake3_256 as u8 => Ok(HashAlgorithm::Blake3_256),
             #[cfg(feature = "blake3")]
-            2 => Ok(HashAlgorithm::Blake3_512),
+            x if x == HashAlgorithm::Blake3_512 as u8 => Ok(HashAlgorithm::Blake3_512),
             #[cfg(feature = "sha2")]
-            3 => Ok(HashAlgorithm::Sha256),
+            x if x == HashAlgorithm::Sha256 as u8 => Ok(HashAlgorithm::Sha256),
             #[cfg(feature = "sha3")]
-            4 => Ok(HashAlgorithm::Sha3),
+            x if x == HashAlgorithm::Sha3 as u8 => Ok(HashAlgorithm::Sha3),
             #[cfg(feature = "keccak")]
-            5 => Ok(HashAlgorithm::Keccak256),
+            x if x == HashAlgorithm::Keccak256 as u8 => Ok(HashAlgorithm::Keccak256),
             _ => Err(anyhow::anyhow!("Invalid hash algorithm")),
         }
     }

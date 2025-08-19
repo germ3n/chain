@@ -57,8 +57,8 @@ where
     ) -> Result<Self, bincode::error::DecodeError> {
         let tag: u8 = Decode::decode(decoder)?;
         match tag {
-            0/*Amount::U128*/ => Ok(Amount::U128(Decode::decode(decoder)?)),
-            1/*Amount::U256*/ => Ok(Amount::U256(Decode::decode(decoder)?)),
+            x if x == Amount::U128 as u8 => Ok(Amount::U128(Decode::decode(decoder)?)),
+            x if x == Amount::U256 as u8 => Ok(Amount::U256(Decode::decode(decoder)?)),
             _ => Err(bincode::error::DecodeError::Other("Invalid tag")),
         }
     }
