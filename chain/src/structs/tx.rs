@@ -9,6 +9,7 @@ use {
     std::borrow::Cow,
     crate::currency::Amount,
     cutedogs::document,
+    crate::generate_enum_with_type_id
 };
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
@@ -24,11 +25,15 @@ pub struct Tx {
     pub data: TxData,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
-#[repr(u16)]
-pub enum TxData {
-    Coinbase(TxCoinbaseData) = 0,
-    Batch(Vec<Tx>) = 1,
+generate_enum_with_type_id! {
+    u16,
+
+    #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
+    #[repr(u16)]
+    pub enum TxData {
+        Coinbase(TxCoinbaseData) = 0,
+        Batch(Vec<Tx>) = 1,
+    }
 }
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
@@ -36,10 +41,14 @@ pub struct TxCoinbaseData {
     pub amount: Amount,
 }
 
-#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, PartialOrd, Ord, Eq, Hash)]
-#[repr(u32)]
-pub enum TxVersion {
-    V1 = 0,
+generate_enum_with_type_id! {
+    u32,
+    
+    #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, PartialOrd, Ord, Eq, Hash)]
+    #[repr(u32)]
+    pub enum TxVersion {
+        V1 = 0,
+    }
 }
 
 impl Tx {

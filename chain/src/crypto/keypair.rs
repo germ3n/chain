@@ -18,47 +18,60 @@ use {
     crate::crypto::hash::{Hash, HashAlgorithm},
     crate::structs::account::{Account, Address},
     serde::{Serialize, Deserialize},
+    crate::generate_enum_with_type_id
 };
 
-#[repr(u8)]
-pub enum Keypair {
-    Null = 0,
-    #[cfg(feature = "ed25519")]
-    Ed25519(Ed25519SigningKey, Ed25519VerifyingKey) = 1,
-    #[cfg(feature = "edblake")]
-    EdBlake(EdBlakeExpandedSecretKey, EdBlakePublicKey) = 2,
-    #[cfg(feature = "secp256k1")]
-    Secp256k1_Ecdsa(Secp256k1SecretKey, Secp256k1PublicKey) = 3,
-    #[cfg(feature = "secp256k1")]
-    Secp256k1_Schnorr(Secp256k1SecretKey, Secp256k1PublicKey) = 4,
+generate_enum_with_type_id! {
+    u8,
+
+    #[repr(u8)]
+    pub enum Keypair {
+        Null = 0,
+        #[cfg(feature = "ed25519")]
+        Ed25519(Ed25519SigningKey, Ed25519VerifyingKey) = 1,
+        #[cfg(feature = "edblake")]
+        EdBlake(EdBlakeExpandedSecretKey, EdBlakePublicKey) = 2,
+        #[cfg(feature = "secp256k1")]
+        Secp256k1_Ecdsa(Secp256k1SecretKey, Secp256k1PublicKey) = 3,
+        #[cfg(feature = "secp256k1")]
+        Secp256k1_Schnorr(Secp256k1SecretKey, Secp256k1PublicKey) = 4,
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash, Serialize, Deserialize)]
-#[repr(u8)]
-pub enum PublicKey {
-    Null = 0,
-    #[cfg(feature = "ed25519")]
-    Ed25519([u8; 32]) = 1,
-    #[cfg(feature = "edblake")]
-    EdBlake([u8; 32]) = 2,
-    #[cfg(feature = "secp256k1")]
-    Secp256k1_Ecdsa([u8; 32]) = 3,
-    #[cfg(feature = "secp256k1")]
-    Secp256k1_Schnorr([u8; 32]) = 4,
+generate_enum_with_type_id! {
+    u8,
+
+    #[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash, Serialize, Deserialize)]
+    #[repr(u8)]
+    pub enum PublicKey {
+        Null = 0,
+        #[cfg(feature = "ed25519")]
+        Ed25519([u8; 32]) = 1,
+        #[cfg(feature = "edblake")]
+        EdBlake([u8; 32]) = 2,
+        #[cfg(feature = "secp256k1")]
+        Secp256k1_Ecdsa([u8; 32]) = 3,
+        #[cfg(feature = "secp256k1")]
+        Secp256k1_Schnorr([u8; 32]) = 4,
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
-#[repr(u8)]
-pub enum Signature {
-    Null = 0,
-    #[cfg(feature = "ed25519")]
-    Ed25519([u8; 64]) = 1,
-    #[cfg(feature = "edblake")]
-    EdBlake([u8; 64]) = 2,
-    #[cfg(feature = "secp256k1")]
-    Secp256k1_Ecdsa([u8; 64]) = 3,
-    #[cfg(feature = "secp256k1")]
-    Secp256k1_Schnorr([u8; 64]) = 4,
+generate_enum_with_type_id! {
+    u8,
+    
+    #[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
+    #[repr(u8)]
+    pub enum Signature {
+        Null = 0,
+        #[cfg(feature = "ed25519")]
+        Ed25519([u8; 64]) = 1,
+        #[cfg(feature = "edblake")]
+        EdBlake([u8; 64]) = 2,
+        #[cfg(feature = "secp256k1")]
+        Secp256k1_Ecdsa([u8; 64]) = 3,
+        #[cfg(feature = "secp256k1")]
+        Secp256k1_Schnorr([u8; 64]) = 4,
+    }
 }
 
 impl Serialize for Signature {
@@ -285,8 +298,8 @@ impl SerializableBytes for Keypair {
 impl DeserializableBytes for Keypair {
     fn from_bytes(bytes: &[u8]) -> Result<Self, Error> {
         match bytes[0] {
-            0/*Keypair::Null as u8*/ => Ok(Keypair::Null),
-            1/*Keypair::Ed25519 as u8*/ => Ok(Keypair::Ed25519(Ed25519SigningKey::from_bytes(&bytes[1..33].try_into().expect("Invalid signing key")), Ed25519VerifyingKey::from_bytes(&bytes[33..65].try_into().expect("Invalid verifying key"))?)),
+            x if x == Keypair::Null.type_id() => Ok(Keypair::Null),
+            1 => Ok(Keypair::Ed25519(Ed25519SigningKey::from_bytes(&bytes[1..33].try_into()?), Ed25519VerifyingKey::from_bytes(&bytes[33..65].try_into()?)?)),
             _ => Err(Error::msg("Invalid keypair")),
         }
     }

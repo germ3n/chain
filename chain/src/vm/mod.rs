@@ -6,6 +6,7 @@ use {
     std::any::Any,
     bincode::{Encode, Decode},
     serde::{Serialize, Deserialize},
+    crate::generate_enum_with_type_id
 };
 
 pub mod contract;
@@ -20,17 +21,21 @@ pub mod svm;
 #[cfg(feature = "pvm")]
 pub mod pvm;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Encode, Decode, Serialize, Deserialize)]
-#[repr(u8)]
-pub enum VMType {
-    #[cfg(feature = "evm")]
-    EVM = 0,
-    #[cfg(feature = "lvm")]
-    LVM = 1,
-    #[cfg(feature = "svm")]
-    SVM = 2,
-    #[cfg(feature = "pvm")]
-    PVM = 3,
+generate_enum_with_type_id! {
+    u8,
+    
+    #[derive(Debug, Clone, PartialEq, Eq, Hash, Encode, Decode, Serialize, Deserialize)]
+    #[repr(u8)]
+    pub enum VMType {
+        #[cfg(feature = "evm")]
+        EVM = 0,
+        #[cfg(feature = "lvm")]
+        LVM = 1,
+        //#[cfg(feature = "svm")]
+        //SVM = 2,
+        //#[cfg(feature = "pvm")]
+        //PVM = 3,
+    }
 }
 
 pub trait VMTrait {

@@ -82,8 +82,8 @@ pub fn create_hash_lib(lua: &Lua) -> LuaResult<LuaTable> {
 
 pub fn create_address_lib(lua: &Lua) -> LuaResult<LuaTable> {
     let globals = lua.globals();
-    globals.set("ED25519", Address::Ed25519([0; 32]).algorithm_id())?;
-    globals.set("EDBLAKE", Address::EdBlake([0; 32]).algorithm_id())?;
+    globals.set("ED25519", Address::Ed25519([0; 32]).type_id())?;
+    globals.set("EDBLAKE", Address::EdBlake([0; 32]).type_id())?;
     let lib = lua.create_table()?;
     lib.set("null", lua.create_function(|_, ()| {
         Ok(UAddress(Address::null()))
@@ -97,7 +97,7 @@ pub fn create_address_lib(lua: &Lua) -> LuaResult<LuaTable> {
         let mut arr = [0u8; 32];
         arr.copy_from_slice(&bytes);
         
-        let address = match addr_type.unwrap_or(Address::Ed25519([0; 32]).algorithm_id()) {
+        let address = match addr_type.unwrap_or(Address::Ed25519([0; 32]).type_id()) {
             0 => Address::Null,
             1 => Address::Ed25519(arr),
             2 => Address::EdBlake(arr),
@@ -114,12 +114,12 @@ pub fn create_address_lib(lua: &Lua) -> LuaResult<LuaTable> {
         lua.create_function(|_, (_, s, addr_type): (LuaTable, String, Option<u8>)| {
             let s = if s.starts_with("0x") { &s[2..] } else { &s };
             let bytes = hex::decode(s).map_err(LuaError::external)?;
-            let address = match addr_type.unwrap_or(Address::Ed25519([0; 32]).algorithm_id()) {
-                x if x == Address::Ed25519([0; 32]).algorithm_id() => match bytes.len() {
+            let address = match addr_type.unwrap_or(Address::Ed25519([0; 32]).type_id()) {
+                x if x == Address::Ed25519([0; 32]).type_id() => match bytes.len() {
                     32 => Address::Ed25519(bytes.try_into().unwrap()),
                     _ => return Err(LuaError::external("Invalid address length")),
                 },
-                x if x == Address::EdBlake([0; 32]).algorithm_id() => match bytes.len() {
+                x if x == Address::EdBlake([0; 32]).type_id() => match bytes.len() {
                     32 => Address::EdBlake(bytes.try_into().unwrap()),
                     _ => return Err(LuaError::external("Invalid address length")),
                 },

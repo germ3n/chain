@@ -5,14 +5,19 @@ use {
     crate::crypto::hash::HashableBytes,
     std::borrow::Cow,
     cutedogs::document,
+    crate::generate_enum_with_type_id
 };
 
-#[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
-#[repr(u8)]
-pub enum Address {
-    Null = 0,
-    Ed25519([u8; 32]) = 1,
-    EdBlake([u8; 32]) = 2,
+generate_enum_with_type_id! {
+    u8,
+    
+    #[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
+    #[repr(u8)]
+    pub enum Address {
+        Null = 0,
+        Ed25519([u8; 32]) = 1,
+        EdBlake([u8; 32]) = 2,
+    }
 }
 
 #[derive(Debug, Clone, Encode, Decode, PartialEq)]
@@ -81,14 +86,6 @@ impl Account {
 impl Address {
     pub fn null() -> Self {
         Self::Null
-    }
-
-    pub fn algorithm_id(&self) -> u8 {
-        match self {
-            Address::Null => 0,
-            Address::Ed25519(_) => 1,
-            Address::EdBlake(_) => 2,
-        }
     }
 }
 

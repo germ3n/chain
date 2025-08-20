@@ -7,30 +7,35 @@ use {
     std::any::Any,
     std::sync::Arc,
     cutedogs::document,
+    crate::generate_enum_with_type_id
 };
 
-#[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
-#[repr(u8)]
-pub enum ContractValueType {
-    None = 0,
-    U8(u8) = 1,
-    I8(i8) = 2,
-    U16(u16) = 3,
-    I16(i16) = 4,
-    U32(u32) = 5,
-    I32(i32) = 6,
-    U64(u64) = 7,
-    I64(i64) = 8,
-    U128(u128) = 9,
-    I128(i128) = 10,
-    U256(U256) = 11,
-    String(String) = 12,
-    Bytes(Vec<u8>) = 13,
-    Hash(Hash) = 14,
-    Address(Address) = 15,
-    Signature(Signature) = 16,
-    PublicKey(PublicKey) = 17,
-    Bool(bool) = 18,
+generate_enum_with_type_id! {
+    u8,
+    
+    #[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
+    #[repr(u8)]
+    pub enum ContractValueType {
+        None = 0,
+        U8(u8) = 1,
+        I8(i8) = 2,
+        U16(u16) = 3,
+        I16(i16) = 4,
+        U32(u32) = 5,
+        I32(i32) = 6,
+        U64(u64) = 7,
+        I64(i64) = 8,
+        U128(u128) = 9,
+        I128(i128) = 10,
+        U256(U256) = 11,
+        String(String) = 12,
+        Bytes(Vec<u8>) = 13,
+        Hash(Hash) = 14,
+        Address(Address) = 15,
+        Signature(Signature) = 16,
+        PublicKey(PublicKey) = 17,
+        Bool(bool) = 18,
+    }
 }
 
 pub trait ContractTrait: Any + VMStorageTrait {

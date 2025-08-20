@@ -7,6 +7,7 @@ use {
     serde::{Serialize, Deserialize},
     std::borrow::Cow,
     cutedogs::document,
+    crate::generate_enum_with_type_id
 };
 
 #[cfg(feature = "keccak")]
@@ -30,21 +31,25 @@ pub enum HashAlgorithm {
     Keccak256,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, Hash, PartialOrd, Ord)]
-#[repr(u8)]
-pub enum Hash {
-    Null = 0,
-    XXHash3_64(u64) = 1,
-    #[cfg(feature = "blake3")]
-    Blake3_256([u8; 32]) = 2,
-    #[cfg(feature = "blake3")]  
-    Blake3_512([u8; 64]) = 3,
-    #[cfg(feature = "sha2")]
-    Sha256([u8; 32]) = 4,
-    #[cfg(feature = "sha3")]
-    Sha512([u8; 64]) = 5,
-    #[cfg(feature = "keccak")]
-    Keccak256([u8; 32]) = 6,
+generate_enum_with_type_id! {
+    u8,
+    
+    #[derive(Debug, Clone, Eq, PartialEq, Encode, Decode, Hash, PartialOrd, Ord)]
+    #[repr(u8)]
+    pub enum Hash {
+        Null = 0,
+        XXHash3_64(u64) = 1,
+        #[cfg(feature = "blake3")]
+        Blake3_256([u8; 32]) = 2,
+        #[cfg(feature = "blake3")]  
+        Blake3_512([u8; 64]) = 3,
+        #[cfg(feature = "sha2")]
+        Sha256([u8; 32]) = 4,
+        #[cfg(feature = "sha3")]
+        Sha512([u8; 64]) = 5,
+        #[cfg(feature = "keccak")]
+        Keccak256([u8; 32]) = 6,
+    }
 }
 
 impl Serialize for Hash {
