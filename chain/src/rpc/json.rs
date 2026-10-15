@@ -64,7 +64,7 @@ impl RpcTrait for JsonRpc {
                         .expect("Failed to build response")
                 }
             }
-        }).map_err(|e| Error::from(e))
+        }).map_err(Error::from)
     }
 }
 

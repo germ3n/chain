@@ -57,3 +57,5 @@ fn main() {
         Err(e) => error!("Consensus loop failed: {}", e),
     }
 }
+
+//todo: remove unwrap and expect

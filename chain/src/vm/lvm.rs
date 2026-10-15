@@ -9,13 +9,15 @@ use {
     mlua::Lua,
     crate::db::open_db,
     mlua::prelude::*,
-    mlua::{Function, Value},
-    std::collections::HashMap,
-    std::sync::RwLock,
+    mlua::{Function, Value, Table, AnyUserData, prelude::LuaString},
     crate::crypto::hash::{Hashable, HashAlgorithm},
     cutedogs::document,
+    rayon::prelude::*,
+    crate::serialize::binary::SerializableBytes,
+    std::collections::HashMap,
+    std::sync::RwLock,
+    std::sync::Mutex,
 };
-
 
 pub mod num;
 pub mod compiler;
@@ -25,6 +27,35 @@ pub mod types;
 
 pub struct LVM {
     pub state: Option<Arc<LVMState>>,
+}
+
+impl LVM {
+    pub fn new() -> Self {
+        Self {
+            state: None,
+        }
+    }
+
+    pub fn execute_transactions(&self, txs: &[&Tx]) -> Result<(), Error> {
+        let state = self.state.as_ref().ok_or_else(|| Error::msg("LVM not initialized"))?.clone();
+        txs.iter().try_for_each(|tx| -> Result<(), Error> {
+            let contract_address = Address::Null;
+            let contract_code = state.contracts.read().unwrap().get(&contract_address).ok_or(Error::msg("Contract code not found"))?.clone();
+
+            let contract = Contract::from_code(&[
+                &Some(contract_address.clone()) as &dyn Any,
+                &contract_code as &dyn Any,
+                &state as &dyn Any,
+            ])?;
+
+            let function_name = "some_function_from_tx"; // todo: implement
+            let args: Vec<&ContractValueType> = Vec::new();
+
+            contract.call_function(&Address::Null, function_name, &args)?;
+            Ok(())
+        })?;
+        Ok(())
+    }
 }
 
 impl VMTrait for LVM {
@@ -41,39 +72,33 @@ impl VMTrait for LVM {
 
     #[document(summary = "Prepares the execution of the LVM", returns = "The result of the preparation")]
     fn prepare_execution(&self) -> Result<(), Error> {
-        //unimplemented!("prepare_execution not implemented")
         Ok(())
     }
 
     #[document(summary = "Executes a transaction on the LVM", params = {
         "tx": "The transaction to execute"
     }, returns = "The result of the execution")]
-    fn execute_tx(&self, _tx: &Tx) -> Result<(), Error> {
-        //unimplemented!("execute_tx not implemented")
-        Ok(())
+    fn execute_tx(&self, tx: &Tx) -> Result<(), Error> {
+        self.execute_transactions(&[tx])
     }
 
     #[document(summary = "Finalizes the execution of the LVM", returns = "The result of the finalization")]
     fn finalize_execution(&self) -> Result<(), Error> {
-        //unimplemented!("finalize_execution not implemented")
         Ok(())
     }
 
     #[document(summary = "Starts a transaction on the LVM", returns = "The result of the start")]
     fn start_tx(&self) -> Result<(), Error> {
-        //unimplemented!("start_tx not implemented")
         Ok(())
     }
 
     #[document(summary = "Commits a transaction on the LVM", returns = "The result of the commit")]
     fn commit_tx(&self) -> Result<(), Error> {
-        //unimplemented!("commit_tx not implemented")
         Ok(())
     }
 
     #[document(summary = "Rolls back a transaction on the LVM", returns = "The result of the rollback")]
     fn rollback_tx(&self) -> Result<(), Error> {
-        //unimplemented!("rollback_tx not implemented")
         Ok(())
     }
 
@@ -81,7 +106,6 @@ impl VMTrait for LVM {
         "code": "The code to deploy"
     }, returns = "The address of the deployed contract")]
     fn deploy_contract(&self, _code: &[u8]) -> Result<Address, Error> {
-        //unimplemented!("deploy_contract not implemented")
         Ok(Address::Null)
     }
 
@@ -89,13 +113,11 @@ impl VMTrait for LVM {
         "hash": "The hash of the contract"
     }, returns = "The contract")]
     fn get_contract(&self, _hash: &Hash) -> Result<Option<&dyn ContractTrait>, Error> {
-        //unimplemented!("get_contract not implemented")
         Ok(None)
     }
 
     #[document(summary = "Gets the state of the LVM", returns = "The state of the LVM")]
     fn get_state(&self) -> Result<&dyn Any, Error> {
-        //unimplemented!("get_state not implemented")
         Ok(self.state.as_ref().unwrap())
     }
 
@@ -105,23 +127,10 @@ impl VMTrait for LVM {
     }
 }
 
-impl LVM {
-    pub fn new() -> Self {
-        Self { 
-            state: None,
-        }
-    }
-}
-
-pub struct LuaEnv {
-    pub lua: Lua,
-}
-
 pub struct LVMState {
     pub accounts: Arc<Box<dyn DatabaseTrait>>,
-    pub contracts: Arc<Box<dyn DatabaseTrait>>,
+    pub contracts: RwLock<HashMap<Address, Vec<u8>>>,
     pub transactions: Arc<Box<dyn DatabaseTrait>>,
-    pub lua: LuaEnv,
 }
 
 impl LVMState {
@@ -131,81 +140,56 @@ impl LVMState {
         "transaction_store_path": "The path to the transaction store"
     }, returns = "The new LVM state")]
     pub fn new(account_store_path: &String, contract_store_path: &String, transaction_store_path: &String) -> Result<Self, Error> {
-        let state = Self { 
-            accounts: open_db(account_store_path.to_owned())?, 
-            contracts: open_db(contract_store_path.to_owned())?, 
+        let state = Self {
+            accounts: open_db(account_store_path.to_owned())?,
+            contracts: RwLock::new(HashMap::new()),
             transactions: open_db(transaction_store_path.to_owned())?,
-            lua: LuaEnv::new()
         };
-        
-        num::register_all_numeric_libraries(&state.lua.lua)?;
-
         info!("LVM state initialized");
         Ok(state)
     }
 }
 
-impl LuaEnv {
-    pub fn new() -> Self {
-        Self { 
-            lua: Lua::new(),
-        }
-    }
+fn prepare_lua_state(lua: &Lua, _sender: &Address, _contract_address: &Address) -> Result<Table, Error> {
+    lua.sandbox(true)?;
+    let globals = lua.globals();
+    let env = lua.create_table()?;
+    num::register_all_numeric_libraries(lua)?;
 
-    #[document(summary = "Creates a new enviroment", returns = "The new enviroment")]
-    pub fn create_enviroment(&self) -> Result<LuaTable, Error> {
-        self.lua.sandbox(false)?;
-
-        let globals = self.lua.globals();
-        let env = self.lua.create_table()?;
-
-        for pair in globals.pairs::<String, Value>() {
-            if let Ok((key, value)) = pair {
-                match key.as_str() {
-                    "_contract" | "_sender" => continue,
-                    _ => ()
+    let deep_copy_value = |lua: &Lua, value: Value| -> Result<Value, Error> {
+        fn deep_copy_recursive(lua: &Lua, value: Value) -> Result<Value, mlua::Error> {
+            match value {
+                Value::Table(table) => {
+                    let new_table = lua.create_table()?;
+                    for pair in table.pairs::<Value, Value>() {
+                        let (key, val) = pair?;
+                        let copied_key = deep_copy_recursive(lua, key)?;
+                        let copied_val = deep_copy_recursive(lua, val)?;
+                        new_table.raw_set(copied_key, copied_val)?;
+                    }
+                    Ok(Value::Table(new_table))
                 }
-
-                //todo!("deep-copy value maybe")
-                env.raw_set(key, value)?;
+                _ => Ok(value)
             }
         }
+        deep_copy_recursive(lua, value).map_err(Error::from)
+    };
 
-        self.lua.sandbox(true).map_err(|e| Error::from(e))?;
-
-        Ok(env)
-    }
-
-    #[document(summary = "Gets an enviroment", params = {
-        "env_key": "The key of the enviroment"
-    }, returns = "The enviroment")]
-    pub fn get_enviroment(&self, env_key: Option<&str>) -> Option<LuaTable> {
-        match env_key {
-            Some(key) => {
-                match self.lua.named_registry_value(key).ok() {
-                    Some(table) => Some(table),
-                    None => self.create_enviroment().ok()
-                }
-            }
-            None => self.create_enviroment().ok()
+    for pair in globals.pairs::<String, Value>() {
+        if let Ok((key, value)) = pair {
+            let copied_value = deep_copy_value(lua, value)?;
+            env.raw_set(key, copied_value)?;
         }
     }
-
-    #[document(summary = "Loads a bytecode", params = {
-        "bytecode": "The bytecode to load"
-    }, returns = "The loaded bytecode")]
-    pub fn load_bytecode(&self, bytecode: &[u8]) -> Result<Function, Error> {
-        self.lua.load(bytecode).into_function().map_err(|e| Error::from(e))
-    }
+    Ok(env)
 }
+
 
 pub struct Contract {
     pub address: Option<Address>,
     pub code: Option<Vec<u8>>,
     pub lvm_state: Arc<LVMState>,
-    pub chunk: Option<Function>,
-    pub env: Option<LuaTable>,
-    pub functions: RwLock<HashMap<Hash, Arc<Function>>>,
+    lua_state: Arc<Mutex<Option<(Lua, Table)>>>,
 }
 
 impl ContractTrait for Contract {
@@ -213,47 +197,20 @@ impl ContractTrait for Contract {
         "data": "The data to create the contract from"
     }, returns = "The new contract")]
     fn from_code(data: &[&dyn Any]) -> Result<Self, Error> {
-        let address = data[0].downcast_ref::<Option<Address>>().unwrap();
-        let code = data[1].downcast_ref::<&[u8]>().unwrap();
-        let lvm_state = data[2].downcast_ref::<Arc<LVMState>>().unwrap();
-
-        let env = match address {
-            Some(address) => lvm_state.lua.get_enviroment(Some(&get_env_key(address))).expect("Failed to get enviroment"),
-            None => lvm_state.lua.create_enviroment().expect("Failed to create enviroment"),
-        };
-
-        let chunk = lvm_state.lua.load_bytecode(code);
-        if let Err(e) = chunk {
-            return Err(e);
-        }
-
-        chunk.as_ref().expect("Failed to load bytecode").set_environment(env.clone())?;
-        let chunk = chunk.unwrap();
-        chunk.call::<bool>(())?;
-        
-        let mut functions = HashMap::new();
-        for pair in env.pairs::<String, Function>() {
-            if let Ok((key, value)) = pair {
-                functions.insert(key.hash(HashAlgorithm::XXHash3_64), Arc::new(value));
-            }
-        }
-
-        Ok(Self { 
-            address: address.clone(),
-            code: Some(code.to_vec()),
-            lvm_state: lvm_state.clone(),
-            chunk: Some(chunk),
-            env: Some(env),
-            functions: RwLock::new(functions),
+        let address = data[0].downcast_ref::<Option<Address>>().ok_or_else(|| Error::msg("Invalid address"))?.clone();
+        let code = data[1].downcast_ref::<&[u8]>().ok_or_else(|| Error::msg("Invalid code"))?.to_vec();
+        let lvm_state = data[2].downcast_ref::<Arc<LVMState>>().ok_or_else(|| Error::msg("Invalid LVM state"))?.clone();
+        Ok(Self {
+            address,
+            code: Some(code),
+            lvm_state,
+            lua_state: Arc::new(Mutex::new(None)),
         })
     }
 
     #[document(summary = "Gets the code of the contract", returns = "The code of the contract")]
     fn get_code(&self) -> Option<&[u8]> {
-        match self.code {
-            Some(ref code) => Some(code),
-            None => None,
-        }
+        self.code.as_deref()
     }
 
     #[document(summary = "Gets the address of the contract", returns = "The address of the contract")]
@@ -266,19 +223,16 @@ impl ContractTrait for Contract {
         "code": "The code to upgrade the contract to"
     }, returns = "The result of the upgrade")]
     fn perform_upgrade(&self, _from: &Address, _code: &[u8]) -> Result<(), Error> {
-        /*match self.call_function(from, &Self::hash_function_name("can_upgrade"), &[&ContractValueType::Address(from.clone())]) {
-            Ok(ContractValueType::Bool(true)) => Ok(()),
-            _ => Err(Error::msg("Failed to upgrade contract, no permission")),
-        }*/
         unimplemented!("perform_upgrade not implemented")
     }
-
+    
     #[document(summary = "Gets a function from the contract", params = {
         "function": "The function to get"
     }, returns = "The function")]
     fn get_function(&self, function: &str) -> Result<Arc<dyn Any>, Error> {
-        let function = self.functions.read().unwrap().get(&function.hash(HashAlgorithm::XXHash3_64)).ok_or(Error::msg("Function not found"))?.clone();
-        Ok(function)
+        let (lua, env) = self.get_or_create_lua_state()?;
+        let func: Function = env.get(function)?;
+        Ok(Arc::new(func))
     }
 
     #[document(summary = "Calls a function on the contract", params = {
@@ -286,9 +240,41 @@ impl ContractTrait for Contract {
         "function": "The function to call",
         "args": "The arguments to the function"
     }, returns = "The result of the function call")]
-    fn call_function(&self, _from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
-        let lua_args: Result<Vec<_>, _> = args.iter().map(|arg| (*arg).clone().into_lua(&self.lvm_state.lua.lua)).collect();
-        self.get_function(function)?.downcast_ref::<Function>().unwrap().call::<ContractValueType>(lua_args?).map_err(Error::from)
+    fn call_function(&self, from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error> {
+        let (lua, env) = self.get_or_create_lua_state()?;
+        let original_from: Option<LuaString> = env.raw_get("_sender")?; // backup the original sender
+        env.raw_set("_sender", from.to_string())?; // set the new sender
+        let func: Function = env.get(function)?;
+        let lua_args: Result<Vec<_>, _> = args.iter().map(|arg| (*arg).clone().into_lua(&lua)).collect();
+        let result: ContractValueType = func.call(lua_args?)?;
+        env.raw_set("_sender", original_from)?; // restore the original sender
+        Ok(result)
+    }
+}
+
+impl Contract {
+    #[document(summary = "Gets the Lua state of the contract", returns = "The Lua state of the contract")]
+    fn get_or_create_lua_state(&self) -> Result<(Lua, Table), Error> {
+        let mut state_guard = self.lua_state.lock().unwrap();
+        
+        if let Some((ref lua, ref env)) = *state_guard {
+            return Ok((lua.clone(), env.clone()));
+        }
+
+        let contract_address = self.get_address().ok_or_else(|| Error::msg("Contract has no address"))?;
+        let code = self.get_code().ok_or_else(|| Error::msg("Contract has no code"))?;
+        
+        let lua = Lua::new();
+        let env = prepare_lua_state(&lua, &Address::Null, contract_address)?;
+        let chunk = lua.load(code).into_function()?;
+        chunk.set_environment(env.clone())?;
+        chunk.call::<()>(())?;
+        
+        let lua_clone = lua.clone();
+        let env_clone = env.clone();
+        *state_guard = Some((lua, env));
+        
+        Ok((lua_clone, env_clone))
     }
 }
 
@@ -307,19 +293,4 @@ impl VMStorageTrait for Contract {
     fn put_to_storage(&self, _key: &[u8], _value: &[u8]) -> Result<(), Error> {
         unimplemented!("put_to_storage not implemented")
     }
-}
-
-impl Contract {
-    #[document(summary = "Gets the enviroment key of the contract", returns = "The enviroment key of the contract")]
-    pub fn get_env_key(&self) -> Option<String> {
-        match self.address {
-            Some(ref address) => Some(get_env_key(address)),
-            None => None,
-        }
-    }
-}
-
-#[document(summary = "Gets the enviroment key of the contract", returns = "The enviroment key of the contract")]
-pub fn get_env_key(address: &Address) -> String {
-    format!("env_{}", address)
 }

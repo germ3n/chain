@@ -13,7 +13,7 @@ pub trait DatabaseTrait: Send + Sync {
     fn open(options: &[&dyn Any]) -> Result<Self, Error> where Self: Sized;
     fn get_raw_bytes(&self, key: &[u8]) -> Result<Option<Vec<u8>>, Error>;
     fn put_raw_bytes(&self, key: &[u8], value: &[u8]) -> Result<(), Error>;
-    fn with_transaction(&self, f: impl FnOnce(&mut dyn TransactionTrait) -> Result<(), Error>) -> Result<(), Error>
+    fn with_transaction(&self, f: impl FnOnce(&dyn TransactionTrait) -> Result<(), Error>) -> Result<(), Error>
     where Self: Sized;
 }
 

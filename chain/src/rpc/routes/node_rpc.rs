@@ -35,6 +35,6 @@ pub fn get_height(_message: &[&dyn Any]) -> (RpcResponse, u16) {
 #[document(summary = "Gets the genesis block of the blockchain", returns = "The genesis block of the blockchain")]
 pub fn get_block(_message: &[&dyn Any]) -> (RpcResponse, u16) {
     (RpcResponse::Success(serde_json::to_vec(&json_obj!(
-        "block" => serde_json::to_value(Block::genesis()).expect("Failed to serialize block"),
+        "block" => serde_json::to_value(Block::genesis(None)).expect("Failed to serialize block"), // todo: use specified hash algorithm
     )).expect("Failed to serialize block")), 200)
 }

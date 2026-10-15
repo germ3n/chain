@@ -5,13 +5,14 @@ use {
     crate::crypto::hash::HashableBytes,
     std::borrow::Cow,
     cutedogs::document,
-    crate::generate_enum_with_type_id
+    crate::generate_enum_with_type_id,
+    serde::{Serialize, Deserialize},
 };
 
 generate_enum_with_type_id! {
     u8,
     
-    #[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Encode, Decode, PartialEq, Eq, Hash, Serialize, Deserialize)]
     #[repr(u8)]
     pub enum Address {
         Null = 0,
@@ -20,19 +21,16 @@ generate_enum_with_type_id! {
     }
 }
 
-#[derive(Debug, Clone, Encode, Decode, PartialEq)]
+#[derive(Debug, Clone, Encode, Decode, PartialEq, Default)]
 pub struct Account {
     pub nonce: u64,
-    pub balance: u128,
+    pub balance: u128, // todo: dont hardcode to u128
 }
 
 impl Account {
     #[document(summary = "Creates a new account", returns = "The new account")]
     pub fn new() -> Self {
-        Self { 
-            nonce: 0,
-            balance: 0,
-        }
+        Self::default()
     }
 
     #[document(summary = "Creates an address from a public key", params = {
@@ -61,29 +59,30 @@ impl Account {
     #[document(summary = "Transfers an amount of currency", params = {
         "amount": "The amount of currency to transfer"
     }, returns = "The old balance")]
-    pub fn transfer(&mut self, amount: u128) -> Result<u128, Error> {
+    pub fn transfer(&mut self, amount: u128) -> Result<(u128, u128), Error> { // (old_balance, new_balance)
         if self.balance < amount {
             return Err(Error::msg("Insufficient balance"));
         }
         let old_balance = self.balance;
         self.balance -= amount;
-        Ok(old_balance)
+        Ok((old_balance, self.balance))
     }
 
     #[document(summary = "Receives an amount of currency", params = {
         "amount": "The amount of currency to receive"
     }, returns = "The old balance")]
-    pub fn receive(&mut self, amount: u128) -> Result<u128, Error> {
+    pub fn receive(&mut self, amount: u128) -> Result<(u128, u128), Error> { // (old_balance, new_balance)
         if amount == 0 {
             return Err(Error::msg("Amount must be greater than 0"));
         }
         let old_balance = self.balance;
-        self.balance += amount;
-        Ok(old_balance)
+        self.balance.checked_add(amount).ok_or(Error::msg("Balance overflow"))?;
+        Ok((old_balance, self.balance))
     }
 }
 
 impl Address {
+    #[document(summary = "Creates a null address", returns = "The created null address")]
     pub fn null() -> Self {
         Self::Null
     }
@@ -92,8 +91,8 @@ impl Address {
 impl HashableBytes for Address {
     fn get_hashable_bytes(&self) -> Result<Cow<[u8]>, Error> {
         match self {
-            Address::Ed25519(pubkey) => Ok(Cow::Borrowed(pubkey)),
-            Address::EdBlake(pubkey) => Ok(Cow::Borrowed(pubkey)),
+            Address::Ed25519(pubkey) => Ok(Cow::Borrowed(pubkey.as_ref())),
+            Address::EdBlake(pubkey) => Ok(Cow::Borrowed(pubkey.as_ref())),
             _ => Err(Error::msg("Invalid address")),
         }
     }

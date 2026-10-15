@@ -1,3 +1,6 @@
+// todo: optimize this
+// todo: edit macro, add call metamethod that calls shorthand
+
 use {
     mlua::{Lua, UserData, UserDataMethods, Result as LuaResult, MetaMethod, Value, FromLua, IntoLua},
     std::{fmt, mem, cmp::Ordering},
@@ -944,9 +947,26 @@ impl LuaU256 {
     }
 
     pub fn from_str(s: &str) -> Result<Self, String> {
-        match PrimitiveU256::from_dec_str(s) {
-            Ok(val) => Ok(Self(U256(val))),
-            Err(_) => Err(format!("Invalid U256 string: {}", s))
+        if s.len() > 2 {
+            match &s[0..2] {
+                "0x" => {
+                    match PrimitiveU256::from_str_radix(&s[2..], 16) {
+                        Ok(val) => Ok(Self(U256(val))),
+                        Err(_) => Err(format!("Invalid U256 string: {}", s))
+                    }
+                }
+                _ => {
+                    match PrimitiveU256::from_str_radix(s, 10) {
+                        Ok(val) => Ok(Self(U256(val))),
+                        Err(_) => Err(format!("Invalid U256 string: {}", s))
+                    }
+                }
+            }
+        } else {
+            match PrimitiveU256::from_str_radix(s, 10) {
+                Ok(val) => Ok(Self(U256(val))),
+                Err(_) => Err(format!("Invalid U256 string: {}", s))
+            }
         }
     }
 
@@ -1087,7 +1107,7 @@ impl FromLua for LuaU256 {
 impl UserData for LuaU256 {
     fn add_methods<M: UserDataMethods<Self>>(methods: &mut M) {
         methods.add_function("new", |_, value: u128| Ok(LuaU256::from_u128(value)));
-        methods.add_function("from_string", |_, s: String| LuaU256::from_str(&s).map_err(|e| mlua::Error::RuntimeError(e)));
+        methods.add_function("from_string", |_, s: String| LuaU256::from_str(&s).map_err(mlua::Error::RuntimeError));
         methods.add_function("min", |_, _: ()| Ok(LuaU256::min_value()));
         methods.add_function("max", |_, _: ()| Ok(LuaU256::max_value()));
 
@@ -1211,7 +1231,7 @@ pub fn register_luau256_library(lua: &Lua) -> LuaResult<()> {
     let table = lua.create_table()?;
     
     table.set("new", lua.create_function(|_, value: u128| Ok(LuaU256::from_u128(value)))?)?;
-    table.set("from_string", lua.create_function(|_, s: String| LuaU256::from_str(&s).map_err(|e| mlua::Error::RuntimeError(e)))?)?;
+    table.set("from_string", lua.create_function(|_, s: String| LuaU256::from_str(&s).map_err(mlua::Error::RuntimeError))?)?;
     table.set("min", lua.create_function(|_, _: ()| Ok(LuaU256::min_value()))?)?;
     table.set("max", lua.create_function(|_, _: ()| Ok(LuaU256::max_value()))?)?;
     

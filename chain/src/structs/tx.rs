@@ -9,7 +9,10 @@ use {
     std::borrow::Cow,
     crate::currency::Amount,
     cutedogs::document,
-    crate::generate_enum_with_type_id
+    crate::generate_enum_with_type_id,
+    crate::structs::account::Address,
+    crate::vm::VMType,
+    crate::vm::contract::ContractValueType,
 };
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
@@ -17,6 +20,7 @@ pub struct TxHeader {
     pub signature: Option<Signature>,
     pub version: TxVersion,
     pub sender: PublicKey,
+    pub recv_chain: Vec<Address>,
 }
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
@@ -33,12 +37,21 @@ generate_enum_with_type_id! {
     pub enum TxData {
         Coinbase(TxCoinbaseData) = 0,
         Batch(Vec<Tx>) = 1,
+        ContractCall(TxContractCallData) = 2,
     }
 }
 
 #[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
 pub struct TxCoinbaseData {
     pub amount: Amount,
+}
+
+#[derive(Encode, Decode, PartialEq, Debug, Serialize, Deserialize, Hash, Eq)]
+pub struct TxContractCallData {
+    pub contract_address: Address,
+    pub function_name: String,
+    pub vm_type: VMType,
+    pub args: Vec<ContractValueType>,
 }
 
 generate_enum_with_type_id! {
@@ -59,6 +72,7 @@ impl Tx {
                 sender: ctx!(miner_keypair).read().expect("Failed to read miner_keypair").as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"),
                 version: TxVersion::V1,
                 signature: None,
+                recv_chain: vec![],
             },
             data: TxData::Coinbase(TxCoinbaseData {
                 amount: Amount::U128(ctx!().calc_block_reward()),
@@ -126,6 +140,7 @@ impl std::fmt::Display for TxData {
         match self {
             TxData::Coinbase(data) => write!(f, "TxData::Coinbase({})", data.amount),
             TxData::Batch(txs) => write!(f, "TxData::Batch({})", txs.len()),
+            TxData::ContractCall(data) => write!(f, "TxData::ContractCall({})", data.contract_address),
         }
     }
 }
@@ -133,5 +148,11 @@ impl std::fmt::Display for TxData {
 impl std::fmt::Display for TxCoinbaseData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "TxCoinbaseData {{ amount: {} }}", self.amount)
+    }
+}
+
+impl std::fmt::Display for TxContractCallData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "TxContractCallData {{ contract_address: {}, function_name: {}, vm_type: {}, args: {} }}", self.contract_address, self.function_name, self.vm_type, self.args.len())
     }
 }

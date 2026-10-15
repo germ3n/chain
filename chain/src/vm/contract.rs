@@ -7,16 +7,17 @@ use {
     std::any::Any,
     std::sync::Arc,
     cutedogs::document,
-    crate::generate_enum_with_type_id
+    crate::generate_enum_with_type_id,
+    serde::{Serialize, Deserialize},
 };
 
 generate_enum_with_type_id! {
     u8,
     
-    #[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash)]
+    #[derive(Debug, Clone, PartialEq, Encode, Decode, Eq, Hash, Serialize, Deserialize)]
     #[repr(u8)]
     pub enum ContractValueType {
-        None = 0,
+        None(()) = 0,
         U8(u8) = 1,
         I8(i8) = 2,
         U16(u16) = 3,
@@ -77,7 +78,7 @@ pub trait ContractAnalyzerTrait: ContractTrait {
 impl IntoLua for ContractValueType {
     fn into_lua(self, lua: &Lua) -> Result<Value, LuaError> {
         match self {
-            ContractValueType::None => Ok(Value::Nil),
+            ContractValueType::None(()) => Ok(Value::Nil),
             ContractValueType::U8(value) => Ok(Value::Integer(value.into())),
             ContractValueType::I8(value) => Ok(Value::Integer(value.into())),
             ContractValueType::U16(value) => Ok(Value::Integer(value.into())),
@@ -104,19 +105,21 @@ impl IntoLua for ContractValueType {
 impl FromLua for ContractValueType {
     fn from_lua(value: Value, _lua: &Lua) -> Result<Self, LuaError> {
         match value {
-            Value::Nil => Ok(ContractValueType::None),
+            Value::Nil => Ok(ContractValueType::None(())),
             Value::Integer(value) => {
                 if value < 0 {
                     match value {
-                        -128..=127 => Ok(ContractValueType::I8(value as i8)),
-                        -32768..=32767 => Ok(ContractValueType::I16(value as i16)),
-                        -2147483648..=2147483647 => Ok(ContractValueType::I32(value as i32)),
+                        x if x >= i8::MIN as i32 && x <= i8::MAX as i32 => Ok(ContractValueType::I8(value as i8)),
+                        x if x >= i16::MIN as i32 && x <= i16::MAX as i32 => Ok(ContractValueType::I16(value as i16)),
+                        x if x >= i32::MIN as i32 && x <= i32::MAX as i32 => Ok(ContractValueType::I32(value as i32)),
+                        _ => Ok(ContractValueType::I64(value as i64))
                     }
                 } else {
-                    match value as u32 {
-                        0..=255 => Ok(ContractValueType::U8(value as u8)),
-                        0..=65535 => Ok(ContractValueType::U16(value as u16)),
-                        0..=4294967295 => Ok(ContractValueType::U32(value as u32)),
+                    match value {
+                        x if x <= u8::MAX as i32 => Ok(ContractValueType::U8(value as u8)),
+                        x if x <= u16::MAX as i32 => Ok(ContractValueType::U16(value as u16)),
+                        x if x <= u32::MAX as i32 => Ok(ContractValueType::U32(value as u32)),
+                        _ => Ok(ContractValueType::U64(value as u64))
                     }
                 }
             },

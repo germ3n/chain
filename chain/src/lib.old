@@ -1,0 +1,19 @@
+pub mod util;
+use std::collections::HashMap;
+
+generate_enum_with_type_id! {
+    u8,
+
+    #[repr(u8)]
+    pub enum Keypair {
+        Null = 0,
+        #[cfg(feature = "ed25519")]
+        Ed25519([u8; 32], [u8; 32]) = 1,
+        #[cfg(feature = "edblake")]
+        EdBlake([u8; 32], [u8; 32]) = 2,
+        #[cfg(feature = "secp256k1")]
+        Secp256k1_Ecdsa([u8; 32], [u8; 32]) = 3,
+        #[cfg(feature = "secp256k1")]
+        Secp256k1_Schnorr([u8; 32], [u8; 32]) = 4,
+    }
+}

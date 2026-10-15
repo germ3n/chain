@@ -31,10 +31,10 @@ generate_enum_with_type_id! {
         EVM = 0,
         #[cfg(feature = "lvm")]
         LVM = 1,
-        //#[cfg(feature = "svm")]
-        //SVM = 2,
-        //#[cfg(feature = "pvm")]
-        //PVM = 3,
+        #[cfg(feature = "svm")]
+        SVM = 2,
+        #[cfg(feature = "pvm")]
+        PVM = 3,
     }
 }
 
@@ -50,4 +50,10 @@ pub trait VMTrait {
     fn get_contract(&self, hash: &Hash) -> Result<Option<&dyn ContractTrait>, Error>;
     fn get_state(&self) -> Result<&dyn Any, Error>;
     fn get_vm_type(&self) -> VMType;
+}
+
+impl std::fmt::Display for VMType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
 }

@@ -45,7 +45,7 @@ impl Context {
         Self { 
             block_height: AtomicU64::new(0),
             miner_keypair: RwLock::new(None),
-            curr_top: RwLock::new(Block::genesis().header.hash),
+            curr_top: RwLock::new(Block::genesis(None).header.hash), // todo: use specified hash algorithm
             curr_circulating_supply: RwLock::new(0),
             issued_supply: RwLock::new(0),
             total_burned_supply: RwLock::new(0),

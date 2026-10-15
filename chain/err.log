@@ -1,0 +1,2321 @@
+   Compiling chain v0.1.0 (/Users/razor/chainv3/chain)
+error: `$vis:vis` is followed by `$rest:tt`, which is not allowed for `vis` fragments
+  --> src/util/macros.rs:46:61
+   |
+46 |     (@find_repr ($name:ident, { $($body:tt)* }), $vis:vis $($rest:tt)*) => {
+   |                                                             ^^^^^^^^ not allowed after `vis` fragments
+   |
+   = note: allowed there are: `,`, an ident or a type
+
+error[E0432]: unresolved imports `crate::crypto::hash::Hash`, `crate::structs::tx::TxData`
+ --> src/structs/block.rs:3:42
+  |
+3 |     crate::crypto::hash::{HashAlgorithm, Hash},
+  |                                          ^^^^ no `Hash` in `crypto::hash`
+4 |     crate::structs::tx::{Tx, TxData},
+  |                              ^^^^^^ no `TxData` in `structs::tx`
+  |
+  = help: consider importing one of these items instead:
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved imports `crate::crypto::keypair::Keypair`, `crate::crypto::keypair::PublicKey`, `crate::crypto::keypair::Signature`
+ --> src/structs/tx.rs:4:30
+  |
+4 |     crate::crypto::keypair::{Keypair, PublicKey, Signature, SignableBytes},
+  |                              ^^^^^^^  ^^^^^^^^^  ^^^^^^^^^
+  |                              |        |          |
+  |                              |        |          no `Signature` in `crypto::keypair`
+  |                              |        |          help: a similar name exists in the module: `Signable`
+  |                              |        no `PublicKey` in `crypto::keypair`
+  |                              no `Keypair` in `crypto::keypair`
+  |
+  = help: consider importing one of these structs instead:
+          ed25519_dalek_blake3::Keypair
+          secp256k1::Keypair
+  = help: consider importing one of these structs instead:
+          ed25519_dalek_blake3::PublicKey
+          rcgen::PublicKey
+          ring::agreement::PublicKey
+          ring::rsa::PublicKey
+          secp256k1::PublicKey
+  = help: consider importing one of these structs instead:
+          ed25519::Signature
+          ed25519_dalek::Signature
+          ed25519_dalek_blake3::Signature
+          ring::signature::Signature
+          secp256k1::ecdsa::Signature
+          secp256k1::schnorr::Signature
+
+error[E0432]: unresolved imports `crate::crypto::keypair::PublicKey`, `crate::crypto::hash::Hash`
+ --> src/structs/account.rs:2:31
+  |
+2 |     crate::crypto::{keypair::{PublicKey}, hash::{Hashable, HashAlgorithm, Hash}},
+  |                               ^^^^^^^^^                                   ^^^^ no `Hash` in `crypto::hash`
+  |                               |
+  |                               no `PublicKey` in `crypto::keypair`
+  |
+  = help: consider importing one of these structs instead:
+          ed25519_dalek_blake3::PublicKey
+          rcgen::PublicKey
+          ring::agreement::PublicKey
+          ring::rsa::PublicKey
+          secp256k1::PublicKey
+  = help: consider importing one of these items instead:
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved import `crate::crypto::hash::Hash`
+ --> src/db/mod.rs:7:27
+  |
+7 |     crate::crypto::hash::{Hash, HashAlgorithm},
+  |                           ^^^^ no `Hash` in `crypto::hash`
+  |
+  = help: consider importing one of these items instead:
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved imports `crate::crypto::hash::Hash`, `crate::crypto::keypair::Keypair`
+ --> src/context.rs:4:25
+  |
+4 |         crypto::{hash::{Hash}, keypair::Keypair}, 
+  |                         ^^^^   ^^^^^^^^^^^^^^^^ no `Keypair` in `crypto::keypair`
+  |                         |
+  |                         no `Hash` in `crypto::hash`
+  |
+  = help: consider importing one of these items instead:
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+  = help: consider importing one of these structs instead:
+          ed25519_dalek_blake3::Keypair
+          secp256k1::Keypair
+
+error[E0432]: unresolved import `crate::event::Event`
+  --> src/consensus/mod.rs:10:20
+   |
+10 |     crate::event::{Event, EventManagerTrait},
+   |                    ^^^^^ no `Event` in `event`
+
+error[E0432]: unresolved imports `crate::crypto::hash::Hash`, `crate::structs::account::Address`
+  --> src/crypto/keypair.rs:18:27
+   |
+18 |     crate::crypto::hash::{Hash, HashAlgorithm},
+   |                           ^^^^ no `Hash` in `crypto::hash`
+19 |     crate::structs::account::{Account, Address},
+   |                                        ^^^^^^^ no `Address` in `structs::account`
+   |
+   = help: consider importing one of these items instead:
+           std::hash::Hash
+           blake3::Hash
+           blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved imports `crate::crypto::hash::Hash`, `crate::structs::account::Address`
+ --> src/vm/mod.rs:2:5
+  |
+2 |     crate::crypto::hash::Hash,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^ no `Hash` in `crypto::hash`
+3 |     crate::structs::{account::Address, tx::Tx},
+  |                      ^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+  |
+  = help: consider importing one of these items instead:
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved imports `crate::crypto::hash::Hash`, `crate::crypto::keypair::PublicKey`, `crate::crypto::keypair::Signature`, `crate::structs::account::Address`
+ --> src/vm/contract.rs:3:25
+  |
+3 |         crypto::{hash::{Hash, HashAlgorithm, Hashable}, keypair::{PublicKey, Signature}}, 
+  |                         ^^^^                                      ^^^^^^^^^  ^^^^^^^^^
+  |                         |                                         |          |
+  |                         |                                         |          no `Signature` in `crypto::keypair`
+  |                         |                                         |          help: a similar name exists in the module: `Signable`
+  |                         no `Hash` in `crypto::hash`               no `PublicKey` in `crypto::keypair`
+4 |         structs::{account::Address, num::U256},
+  |                   ^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+  |
+  = help: consider importing one of these items instead:
+          crate::vm::Hash
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+  = help: consider importing one of these structs instead:
+          ed25519_dalek_blake3::PublicKey
+          rcgen::PublicKey
+          ring::agreement::PublicKey
+          ring::rsa::PublicKey
+          secp256k1::PublicKey
+  = help: consider importing one of these structs instead:
+          ed25519::Signature
+          ed25519_dalek::Signature
+          ed25519_dalek_blake3::Signature
+          ring::signature::Signature
+          secp256k1::ecdsa::Signature
+          secp256k1::schnorr::Signature
+  = help: consider importing this unresolved item through its public re-export instead:
+          crate::vm::Address
+
+error[E0432]: unresolved import `crate::structs::account::Address`
+ --> src/vm/traits/contract/upgradeable.rs:4:9
+  |
+4 |         structs::account::Address,
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+  |
+  = help: consider importing this unresolved item through its public re-export instead:
+          crate::vm::Address
+
+error[E0432]: unresolved imports `crate::structs::account::Address`, `crate::vm::contract::ContractValueType`
+ --> src/vm/traits/contract/permissions.rs:3:5
+  |
+3 |     crate::structs::account::Address,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+4 |     crate::vm::contract::ContractValueType,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `ContractValueType` in `vm::contract`
+  |
+  = help: consider importing this unresolved item through its public re-export instead:
+          crate::vm::Address
+
+error[E0432]: unresolved imports `crate::vm::VMType`, `crate::crypto::hash::Hash`, `crate::vm::contract::ContractValueType`, `crate::structs::account::Address`
+  --> src/vm/evm.rs:2:26
+   |
+2  |     crate::vm::{VMTrait, VMType},
+   |                          ^^^^^^ no `VMType` in `vm`
+...
+5  |     crate::crypto::hash::Hash,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ no `Hash` in `crypto::hash`
+...
+9  |     crate::vm::contract::{ContractTrait, ContractValueType, VMStorageTrait},
+   |                                          ^^^^^^^^^^^^^^^^^ no `ContractValueType` in `vm::contract`
+10 |     crate::structs::account::Address,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+   |
+   = help: consider importing one of these items instead:
+           crate::vm::Hash
+           std::hash::Hash
+           blake3::Hash
+           blake3::hazmat::Mode::Hash
+   = help: consider importing this unresolved item through its public re-export instead:
+           crate::vm::Address
+
+error[E0432]: unresolved imports `crate::vm::contract::ContractValueType`, `crate::vm::VMType`, `crate::structs::account::Address`, `crate::crypto::hash::Hash`
+ --> src/vm/lvm.rs:2:52
+  |
+2 |     crate::vm::{VMTrait, contract::{ContractTrait, ContractValueType, VMStorageTrait}, VMType},
+  |                                                    ^^^^^^^^^^^^^^^^^                   ^^^^^^ no `VMType` in `vm`
+  |                                                    |
+  |                                                    no `ContractValueType` in `vm::contract`
+3 |     crate::structs::{tx::Tx, account::Address},
+  |                              ^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+4 |     anyhow::Error,
+5 |     crate::crypto::hash::Hash,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^ no `Hash` in `crypto::hash`
+  |
+  = help: consider importing this unresolved item through its public re-export instead:
+          crate::vm::Address
+  = help: consider importing one of these items instead:
+          crate::vm::Hash
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved imports `crate::crypto::hash::Hash`, `crate::structs::account::Address`
+ --> src/vm/lvm/types.rs:3:24
+  |
+3 |         crypto::hash::{Hash, HashAlgorithm},
+  |                        ^^^^ no `Hash` in `crypto::hash`
+4 |         structs::account::Address,
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+  |
+  = help: consider importing one of these items instead:
+          crate::vm::Hash
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+  = help: consider importing this unresolved item through its public re-export instead:
+          crate::vm::Address
+
+error[E0432]: unresolved import `crate::crypto::hash::Hash`
+ --> src/mempool/mod.rs:7:5
+  |
+7 |     crate::crypto::hash::Hash,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^ no `Hash` in `crypto::hash`
+  |
+  = help: consider importing one of these items instead:
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved import `crate::crypto::hash::Hash`
+ --> src/net/messages.rs:2:5
+  |
+2 |     crate::crypto::hash::Hash,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^ no `Hash` in `crypto::hash`
+  |
+  = help: consider importing one of these items instead:
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved import `crate::net::messages::Message`
+ --> src/net/mod.rs:4:5
+  |
+4 |     crate::net::messages::Message,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Message` in `net::messages`
+  |
+  = help: consider importing this struct instead:
+          secp256k1::Message
+
+error[E0432]: unresolved import `crate::structs::account::Address`
+ --> src/currency/native.rs:6:5
+  |
+6 |     crate::structs::account::Address,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+
+error[E0432]: unresolved import `crate::structs::account::Address`
+ --> src/currency/nft.rs:3:5
+  |
+3 |     crate::structs::account::Address,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+
+error[E0432]: unresolved import `crate::structs::account::Address`
+ --> src/currency/token.rs:5:5
+  |
+5 |     crate::structs::account::Address,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+
+error[E0432]: unresolved import `crate::structs::account::Address`
+ --> src/currency/mod.rs:8:5
+  |
+8 |     crate::structs::account::Address,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+
+error[E0432]: unresolved imports `crate::crypto::hash::Hash`, `crate::vm::contract::ContractValueType`, `crate::structs::account::Address`
+ --> src/event/mod.rs:3:5
+  |
+3 |     crate::crypto::hash::Hash,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^ no `Hash` in `crypto::hash`
+4 |     std::sync::{RwLock},
+5 |     crate::vm::contract::ContractValueType,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `ContractValueType` in `vm::contract`
+6 |     crate::structs::account::Address,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Address` in `structs::account`
+  |
+  = help: consider importing one of these items instead:
+          std::hash::Hash
+          blake3::Hash
+          blake3::hazmat::Mode::Hash
+
+error[E0432]: unresolved import `crate::crypto::keypair::Keypair`
+  --> src/main.rs:24:5
+   |
+24 |     crate::crypto::keypair::Keypair,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `Keypair` in `crypto::keypair`
+   |
+   = help: consider importing one of these structs instead:
+           ed25519_dalek_blake3::Keypair
+           secp256k1::Keypair
+
+error[E0412]: cannot find type `TxVersion` in this scope
+  --> src/structs/tx.rs:18:18
+   |
+18 |     pub version: TxVersion,
+   |                  ^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `TxVersion` in this scope
+  --> src/structs/tx.rs:18:18
+   |
+18 |     pub version: TxVersion,
+   |                  ^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+16 | pub struct TxHeader<TxVersion> {
+   |                    +++++++++++
+
+error[E0412]: cannot find type `TxData` in this scope
+  --> src/structs/tx.rs:25:15
+   |
+25 |     pub data: TxData,
+   |               ^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `TxData` in this scope
+  --> src/structs/tx.rs:25:15
+   |
+25 |     pub data: TxData,
+   |               ^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+23 | pub struct Tx<TxData> {
+   |              ++++++++
+
+error[E0412]: cannot find type `TxData` in this scope
+   --> src/structs/tx.rs:120:28
+    |
+120 | impl std::fmt::Display for TxData {
+    |                            ^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Address` in this scope
+  --> src/structs/account.rs:39:62
+   |
+39 |     pub fn address_from_pubkey(pubkey: &PublicKey) -> Result<Address, Error> {
+   |                                                              ^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+27 | impl<Address> Account {
+   |     +++++++++
+
+error[E0412]: cannot find type `Address` in this scope
+  --> src/structs/account.rs:84:6
+   |
+84 | impl Address {
+   |      ^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Address` in this scope
+  --> src/structs/account.rs:90:24
+   |
+90 | impl HashableBytes for Address {
+   |                        ^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Address` in this scope
+   --> src/structs/account.rs:100:28
+    |
+100 | impl std::fmt::Display for Address {
+    |                            ^^^^^^^ not found in this scope
+
+error[E0573]: expected type, found derive macro `Hash`
+  --> src/crypto/hash.rs:53:20
+   |
+53 | impl Serialize for Hash {
+   |                    ^^^^ not a type
+   |
+help: consider importing one of these items instead
+   |
+1  + use std::hash::Hash;
+   |
+1  + use blake3::Hash;
+   |
+
+error[E0573]: expected type, found derive macro `Hash`
+  --> src/crypto/hash.rs:62:32
+   |
+62 | impl<'de> Deserialize<'de> for Hash {
+   |                                ^^^^ not a type
+   |
+help: consider importing one of these items instead
+   |
+1  + use std::hash::Hash;
+   |
+1  + use blake3::Hash;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+  --> src/crypto/hash.rs:68:12
+   |
+68 |         Ok(Hash::from_bytes(HashAlgorithm::Blake3_256, s.as_bytes()))
+   |            ^^^^ use of undeclared type `Hash`
+   |
+help: consider importing one of these items
+   |
+1  + use std::hash::Hash;
+   |
+1  + use blake3::Hash;
+   |
+
+error[E0573]: expected type, found derive macro `Hash`
+  --> src/crypto/hash.rs:72:6
+   |
+72 | impl Hash {
+   |      ^^^^ not a type
+   |
+help: consider importing one of these items instead
+   |
+1  + use std::hash::Hash;
+   |
+1  + use blake3::Hash;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:152:13
+    |
+152 |             Hash::Blake3_256(hash) => hash,
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0573]: expected type, found derive macro `Hash`
+   --> src/crypto/hash.rs:158:28
+    |
+158 | impl std::fmt::Display for Hash {
+    |                            ^^^^ not a type
+    |
+help: consider importing one of these items instead
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:161:13
+    |
+161 |             Hash::Null => write!(f, "null"),
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:162:13
+    |
+162 |             Hash::XXHash3_64(hash) => write!(f, "{:016x}", hash),
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:164:13
+    |
+164 |             Hash::Blake3_256(hash) => write!(f, "{}", hex::encode(hash)),
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:166:13
+    |
+166 |             Hash::Blake3_512(hash) => write!(f, "{}", hex::encode(hash)),
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:168:13
+    |
+168 |             Hash::Sha256(hash) => write!(f, "{}", hex::encode(hash)),
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:170:13
+    |
+170 |             Hash::Sha512(hash) => write!(f, "{}", hex::encode(hash)),
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:172:13
+    |
+172 |             Hash::Keccak256(hash) => write!(f, "{}", hex::encode(hash)),
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0573]: expected type, found derive macro `Hash`
+   --> src/crypto/hash.rs:178:49
+    |
+178 |     fn hash(&self, algorithm: HashAlgorithm) -> Hash;
+    |                                                 ^^^^ not a type
+    |
+help: consider importing one of these items instead
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0573]: expected type, found derive macro `Hash`
+   --> src/crypto/hash.rs:179:111
+    |
+179 |     fn hash_with_callback(&self, algorithm: HashAlgorithm, callback: impl FnOnce(&mut dyn std::io::Write)) -> Hash;
+    |                                                                                                               ^^^^ not a type
+    |
+help: consider importing one of these items instead
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0573]: expected type, found derive macro `Hash`
+   --> src/crypto/hash.rs:192:49
+    |
+192 |     fn hash(&self, algorithm: HashAlgorithm) -> Hash {
+    |                                                 ^^^^ not a type
+    |
+help: consider importing one of these items instead
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:194:9
+    |
+194 |         Hash::from_bytes(algorithm, &bytes)
+    |         ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0573]: expected type, found derive macro `Hash`
+   --> src/crypto/hash.rs:201:111
+    |
+201 |     fn hash_with_callback(&self, algorithm: HashAlgorithm, callback: impl FnOnce(&mut dyn std::io::Write)) -> Hash {
+    |                                                                                                               ^^^^ not a type
+    |
+help: consider importing one of these items instead
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:202:9
+    |
+202 |         Hash::with_hasher(algorithm, |hasher: &mut dyn std::io::Write| {
+    |         ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Hash`
+   --> src/crypto/hash.rs:212:13
+    |
+212 |             Hash::Blake3_256(hash) => hash.to_vec(),
+    |             ^^^^ use of undeclared type `Hash`
+    |
+help: consider importing one of these items
+    |
+1   + use std::hash::Hash;
+    |
+1   + use blake3::Hash;
+    |
+
+error[E0412]: cannot find type `Signature` in this scope
+   --> src/crypto/keypair.rs:71:20
+    |
+71  | impl Serialize for Signature {
+    |                    ^^^^^^^^^
+...
+302 | pub trait Signable {
+    | ------------------ similarly named trait `Signable` defined here
+    |
+help: a trait with a similar name exists
+    |
+71  - impl Serialize for Signature {
+71  + impl Serialize for Signable {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0412]: cannot find type `Signature` in this scope
+   --> src/crypto/keypair.rs:80:32
+    |
+80  | impl<'de> Deserialize<'de> for Signature {
+    |                                ^^^^^^^^^
+...
+302 | pub trait Signable {
+    | ------------------ similarly named trait `Signable` defined here
+    |
+help: a trait with a similar name exists
+    |
+80  - impl<'de> Deserialize<'de> for Signature {
+80  + impl<'de> Deserialize<'de> for Signable {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+  --> src/crypto/keypair.rs:86:9
+   |
+86 |         Signature::from_bytes(s.as_bytes()).map_err(|e| serde::de::Error::custom(e.to_string()))
+   |         ^^^^^^^^^ use of undeclared type `Signature`
+   |
+help: a trait with a similar name exists
+   |
+86 -         Signature::from_bytes(s.as_bytes()).map_err(|e| serde::de::Error::custom(e.to_string()))
+86 +         Signable::from_bytes(s.as_bytes()).map_err(|e| serde::de::Error::custom(e.to_string()))
+   |
+help: consider importing one of these structs
+   |
+3  + use ed25519::Signature;
+   |
+3  + use ed25519_dalek::Signature;
+   |
+3  + use ed25519_dalek_blake3::Signature;
+   |
+3  + use ring::signature::Signature;
+   |
+     and 2 other candidates
+
+error[E0412]: cannot find type `Keypair` in this scope
+  --> src/crypto/keypair.rs:90:6
+   |
+90 | impl Keypair {
+   |      ^^^^^^^ not found in this scope
+   |
+help: consider importing one of these structs
+   |
+3  + use ed25519_dalek_blake3::Keypair;
+   |
+3  + use secp256k1::Keypair;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+  --> src/crypto/keypair.rs:92:9
+   |
+92 |         Keypair::Null
+   |         ^^^^^^^ use of undeclared type `Keypair`
+   |
+help: consider importing one of these structs
+   |
+3  + use ed25519_dalek_blake3::Keypair;
+   |
+3  + use secp256k1::Keypair;
+   |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:100:12
+    |
+100 |         Ok(Keypair::Ed25519(signing_key, verifying_key))
+    |            ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:107:12
+    |
+107 |         Ok(Keypair::EdBlake(EdBlakeExpandedSecretKey::from(&keypair.secret), keypair.public))
+    |            ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `Signature` in this scope
+   --> src/crypto/keypair.rs:123:50
+    |
+123 |     pub fn sign(&self, message: &[u8]) -> Result<Signature, Error> {
+    |                                                  ^^^^^^^^^
+...
+302 | pub trait Signable {
+    | ------------------ similarly named trait `Signable` defined here
+    |
+help: a trait with a similar name exists
+    |
+123 -     pub fn sign(&self, message: &[u8]) -> Result<Signature, Error> {
+123 +     pub fn sign(&self, message: &[u8]) -> Result<Signable, Error> {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:125:13
+    |
+125 |             Keypair::Null => Err(Error::msg("Null keypair")),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:127:13
+    |
+127 |             Keypair::Ed25519(signing_key, _) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:128:33
+    |
+128 |                 let signature = Signature::Ed25519(signing_key.sign(message).to_bytes());
+    |                                 ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+128 -                 let signature = Signature::Ed25519(signing_key.sign(message).to_bytes());
+128 +                 let signature = Signable::Ed25519(signing_key.sign(message).to_bytes());
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:133:13
+    |
+133 |             Keypair::EdBlake(_signing_key, _verifying_key) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:140:13
+    |
+140 |             Keypair::Secp256k1_Ecdsa(signing_key, _) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:151:20
+    |
+151 |                 Ok(Signature::Secp256k1_Ecdsa(signature.serialize_der().to_vec().try_into().unwrap()))
+    |                    ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+151 -                 Ok(Signature::Secp256k1_Ecdsa(signature.serialize_der().to_vec().try_into().unwrap()))
+151 +                 Ok(Signable::Secp256k1_Ecdsa(signature.serialize_der().to_vec().try_into().unwrap()))
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:154:13
+    |
+154 |             Keypair::Secp256k1_Schnorr(_, _) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `PublicKey` in this scope
+   --> src/crypto/keypair.rs:160:36
+    |
+160 |     pub fn pubkey(&self) -> Result<PublicKey, Error> {
+    |                                    ^^^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:162:13
+    |
+162 |             Keypair::Null => Ok(PublicKey::Null),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:162:33
+    |
+162 |             Keypair::Null => Ok(PublicKey::Null),
+    |                                 ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:164:13
+    |
+164 |             Keypair::Ed25519(_, verifying_key) => Ok(PublicKey::Ed25519(verifying_key.to_bytes())),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:164:54
+    |
+164 |             Keypair::Ed25519(_, verifying_key) => Ok(PublicKey::Ed25519(verifying_key.to_bytes())),
+    |                                                      ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:166:13
+    |
+166 |             Keypair::EdBlake(_, verifying_key) => Ok(PublicKey::EdBlake(verifying_key.to_bytes())),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:166:54
+    |
+166 |             Keypair::EdBlake(_, verifying_key) => Ok(PublicKey::EdBlake(verifying_key.to_bytes())),
+    |                                                      ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:168:13
+    |
+168 |             Keypair::Secp256k1_Ecdsa(_, _) => unimplemented!("Secp256k1_Ecdsa not implemented"),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:170:13
+    |
+170 |             Keypair::Secp256k1_Schnorr(_, _) => unimplemented!("Secp256k1_Schnorr not implemented"),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `Signature` in this scope
+   --> src/crypto/keypair.rs:179:6
+    |
+179 | impl Signature {
+    |      ^^^^^^^^^
+...
+302 | pub trait Signable {
+    | ------------------ similarly named trait `Signable` defined here
+    |
+help: a trait with a similar name exists
+    |
+179 - impl Signature {
+179 + impl Signable {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:181:9
+    |
+181 |         Signature::Null
+    |         ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+181 -         Signature::Null
+181 +         Signable::Null
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0412]: cannot find type `Keypair` in this scope
+   --> src/crypto/keypair.rs:184:36
+    |
+184 |     pub fn verify(&self, keypair: &Keypair, message: &[u8]) -> Result<(), Error> {
+    |                                    ^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:186:13
+    |
+186 |             Keypair::Null => Err(Error::msg("Null keypair")),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:188:13
+    |
+188 |             Keypair::Ed25519(_, verifying_key) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:190:21
+    |
+190 |                     Signature::Ed25519(signature) => {
+    |                     ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+190 -                     Signature::Ed25519(signature) => {
+190 +                     Signable::Ed25519(signature) => {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:198:13
+    |
+198 |             Keypair::EdBlake(_, verifying_key) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:200:21
+    |
+200 |                     Signature::EdBlake(signature) => {
+    |                     ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+200 -                     Signature::EdBlake(signature) => {
+200 +                     Signable::EdBlake(signature) => {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:208:13
+    |
+208 |             Keypair::Secp256k1_Ecdsa(_, verifying_key) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:210:21
+    |
+210 |                     Signature::Secp256k1_Ecdsa(signature) => {
+    |                     ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+210 -                     Signature::Secp256k1_Ecdsa(signature) => {
+210 +                     Signable::Secp256k1_Ecdsa(signature) => {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:226:13
+    |
+226 |             Keypair::Secp256k1_Schnorr(_, _) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `PublicKey` in this scope
+   --> src/crypto/keypair.rs:233:6
+    |
+233 | impl PublicKey {
+    |      ^^^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:235:9
+    |
+235 |         PublicKey::Null
+    |         ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0412]: cannot find type `Signature` in this scope
+   --> src/crypto/keypair.rs:238:54
+    |
+238 |     pub fn verify(&self, message: &[u8], signature: &Signature) -> Result<(), Error> {
+    |                                                      ^^^^^^^^^
+...
+302 | pub trait Signable {
+    | ------------------ similarly named trait `Signable` defined here
+    |
+help: a trait with a similar name exists
+    |
+238 -     pub fn verify(&self, message: &[u8], signature: &Signature) -> Result<(), Error> {
+238 +     pub fn verify(&self, message: &[u8], signature: &Signable) -> Result<(), Error> {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:240:13
+    |
+240 |             PublicKey::Null => Err(Error::msg("Null public key")),
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:242:13
+    |
+242 |             PublicKey::Ed25519(pubkey) => {
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:244:21
+    |
+244 |                     Signature::Ed25519(signature) => {
+    |                     ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+244 -                     Signature::Ed25519(signature) => {
+244 +                     Signable::Ed25519(signature) => {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:252:13
+    |
+252 |             PublicKey::EdBlake(pubkey) => {
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:254:22
+    |
+254 |                     &Signature::EdBlake(signature) => {
+    |                      ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+254 -                     &Signature::EdBlake(signature) => {
+254 +                     &Signable::EdBlake(signature) => {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:262:13
+    |
+262 |             PublicKey::Secp256k1_Ecdsa(_pubkey) => {
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:266:13
+    |
+266 |             PublicKey::Secp256k1_Schnorr(_pubkey) => {
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0412]: cannot find type `Keypair` in this scope
+   --> src/crypto/keypair.rs:273:28
+    |
+273 | impl SerializableBytes for Keypair {
+    |                            ^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:276:13
+    |
+276 |             Keypair::Null => Ok(vec![]),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:277:13
+    |
+277 |             Keypair::Ed25519(signing_key, verifying_key) => {
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:279:28
+    |
+279 |                 bytes.push(Keypair::Ed25519 as u8);
+    |                            ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `Keypair` in this scope
+   --> src/crypto/keypair.rs:292:30
+    |
+292 | impl DeserializableBytes for Keypair {
+    |                              ^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:295:23
+    |
+295 |             x if x == Keypair::Null.type_id() => Ok(Keypair::Null),
+    |                       ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:295:53
+    |
+295 |             x if x == Keypair::Null.type_id() => Ok(Keypair::Null),
+    |                                                     ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:296:21
+    |
+296 | ...   1 => Ok(Keypair::Ed25519(Ed25519SigningKey::from_bytes(&bytes[1..33].try_into()?), Ed25519VerifyingKey::from_bytes(&bytes[33..65].t...
+    |               ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `Keypair` in this scope
+   --> src/crypto/keypair.rs:303:30
+    |
+303 |     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error>;
+    |                              ^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `Signature` in this scope
+   --> src/crypto/keypair.rs:303:49
+    |
+303 |     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error>;
+    |                                                 ^^^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0412]: cannot find type `Keypair` in this scope
+   --> src/crypto/keypair.rs:307:30
+    |
+307 |     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error> {
+    |                              ^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `Signature` in this scope
+   --> src/crypto/keypair.rs:307:49
+    |
+302 | pub trait Signable {
+    | ------------------ similarly named trait `Signable` defined here
+...
+307 |     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error> {
+    |                                                 ^^^^^^^^^
+    |
+help: a trait with a similar name exists
+    |
+307 -     fn sign(&self, keypair: &Keypair) -> Result<Signature, Error> {
+307 +     fn sign(&self, keypair: &Keypair) -> Result<Signable, Error> {
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0412]: cannot find type `Keypair` in this scope
+   --> src/crypto/keypair.rs:322:28
+    |
+322 | impl std::fmt::Display for Keypair {
+    |                            ^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:325:13
+    |
+325 |             Keypair::Null => write!(f, "Keypair(Null)"),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:327:13
+    |
+327 |             Keypair::Ed25519(_, verifying_key) => write!(f, "Keypair(Ed25519, 0x{})", hex::encode(verifying_key.to_bytes())),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:329:13
+    |
+329 |             Keypair::EdBlake(_, verifying_key) => write!(f, "Keypair(EdBlake, 0x{})", hex::encode(verifying_key.to_bytes())),
+    |             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:331:13
+    |
+331 | ...   Keypair::Secp256k1_Ecdsa(_, verifying_key) => write!(f, "Keypair(Secp256k1_Ecdsa, 0x{})", hex::encode(verifying_key.serialize())),
+    |       ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:333:13
+    |
+333 | ...   Keypair::Secp256k1_Schnorr(_, verifying_key) => write!(f, "Keypair(Secp256k1_Schnorr, 0x{})", hex::encode(verifying_key.serialize())),
+    |       ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `PublicKey` in this scope
+   --> src/crypto/keypair.rs:338:28
+    |
+338 | impl std::fmt::Display for PublicKey {
+    |                            ^^^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:341:13
+    |
+341 |             PublicKey::Null => write!(f, "PublicKey(Null)"),
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:343:13
+    |
+343 |             PublicKey::Ed25519(pubkey) => write!(f, "PublicKey(Ed25519, 0x{})", hex::encode(pubkey)),
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:345:13
+    |
+345 |             PublicKey::EdBlake(pubkey) => write!(f, "PublicKey(EdBlake, 0x{})", hex::encode(pubkey)),
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:347:13
+    |
+347 |             PublicKey::Secp256k1_Ecdsa(pubkey) => write!(f, "PublicKey(Secp256k1_Ecdsa, 0x{})", hex::encode(pubkey)),
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0433]: failed to resolve: use of undeclared type `PublicKey`
+   --> src/crypto/keypair.rs:349:13
+    |
+349 |             PublicKey::Secp256k1_Schnorr(pubkey) => write!(f, "PublicKey(Secp256k1_Schnorr, 0x{})", hex::encode(pubkey)),
+    |             ^^^^^^^^^ use of undeclared type `PublicKey`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::PublicKey;
+    |
+3   + use rcgen::PublicKey;
+    |
+3   + use ring::agreement::PublicKey;
+    |
+3   + use ring::rsa::PublicKey;
+    |
+      and 1 other candidate
+
+error[E0412]: cannot find type `Signature` in this scope
+   --> src/crypto/keypair.rs:354:28
+    |
+302 | pub trait Signable {
+    | ------------------ similarly named trait `Signable` defined here
+...
+354 | impl std::fmt::Display for Signature {  
+    |                            ^^^^^^^^^
+    |
+help: a trait with a similar name exists
+    |
+354 - impl std::fmt::Display for Signature {  
+354 + impl std::fmt::Display for Signable {  
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:357:13
+    |
+357 |             Signature::Null => write!(f, "Signature(Null)"),
+    |             ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+357 -             Signature::Null => write!(f, "Signature(Null)"),
+357 +             Signable::Null => write!(f, "Signature(Null)"),
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:359:13
+    |
+359 |             Signature::Ed25519(signature) => write!(f, "Signature(Ed25519, 0x{})", hex::encode(signature)),
+    |             ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+359 -             Signature::Ed25519(signature) => write!(f, "Signature(Ed25519, 0x{})", hex::encode(signature)),
+359 +             Signable::Ed25519(signature) => write!(f, "Signature(Ed25519, 0x{})", hex::encode(signature)),
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:361:13
+    |
+361 |             Signature::EdBlake(signature) => write!(f, "Signature(EdBlake, 0x{})", hex::encode(signature)),
+    |             ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+361 -             Signature::EdBlake(signature) => write!(f, "Signature(EdBlake, 0x{})", hex::encode(signature)),
+361 +             Signable::EdBlake(signature) => write!(f, "Signature(EdBlake, 0x{})", hex::encode(signature)),
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:363:13
+    |
+363 |             Signature::Secp256k1_Ecdsa(signature) => write!(f, "Signature(Secp256k1_Ecdsa, 0x{})", hex::encode(signature)),
+    |             ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+363 -             Signature::Secp256k1_Ecdsa(signature) => write!(f, "Signature(Secp256k1_Ecdsa, 0x{})", hex::encode(signature)),
+363 +             Signable::Secp256k1_Ecdsa(signature) => write!(f, "Signature(Secp256k1_Ecdsa, 0x{})", hex::encode(signature)),
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0433]: failed to resolve: use of undeclared type `Signature`
+   --> src/crypto/keypair.rs:365:13
+    |
+365 |             Signature::Secp256k1_Schnorr(signature) => write!(f, "Signature(Secp256k1_Schnorr, 0x{})", hex::encode(signature)),
+    |             ^^^^^^^^^ use of undeclared type `Signature`
+    |
+help: a trait with a similar name exists
+    |
+365 -             Signature::Secp256k1_Schnorr(signature) => write!(f, "Signature(Secp256k1_Schnorr, 0x{})", hex::encode(signature)),
+365 +             Signable::Secp256k1_Schnorr(signature) => write!(f, "Signature(Secp256k1_Schnorr, 0x{})", hex::encode(signature)),
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519::Signature;
+    |
+3   + use ed25519_dalek::Signature;
+    |
+3   + use ed25519_dalek_blake3::Signature;
+    |
+3   + use ring::signature::Signature;
+    |
+      and 2 other candidates
+
+error[E0412]: cannot find type `Keypair` in this scope
+   --> src/crypto/keypair.rs:370:30
+    |
+370 | impl std::cmp::PartialEq for Keypair {
+    |                              ^^^^^^^ not found in this scope
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:373:14
+    |
+373 |             (Keypair::Null, Keypair::Null) => true,
+    |              ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:373:29
+    |
+373 |             (Keypair::Null, Keypair::Null) => true,
+    |                             ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:375:14
+    |
+375 |             (Keypair::Ed25519(_, verifying_key), Keypair::Ed25519(_, other_verifying_key)) => {
+    |              ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:375:50
+    |
+375 |             (Keypair::Ed25519(_, verifying_key), Keypair::Ed25519(_, other_verifying_key)) => {
+    |                                                  ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:379:14
+    |
+379 |             (Keypair::EdBlake(_, verifying_key), Keypair::EdBlake(_, other_verifying_key)) => {
+    |              ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Keypair`
+   --> src/crypto/keypair.rs:379:50
+    |
+379 |             (Keypair::EdBlake(_, verifying_key), Keypair::EdBlake(_, other_verifying_key)) => {
+    |                                                  ^^^^^^^ use of undeclared type `Keypair`
+    |
+help: consider importing one of these structs
+    |
+3   + use ed25519_dalek_blake3::Keypair;
+    |
+3   + use secp256k1::Keypair;
+    |
+
+error[E0412]: cannot find type `ContractValueType` in this scope
+  --> src/vm/contract.rs:45:70
+   |
+45 |     fn call_function(&self, from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
+   |                                                                      ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `ContractValueType` in this scope
+  --> src/vm/contract.rs:45:100
+   |
+45 |     fn call_function(&self, from: &Address, function: &str, args: &[&ContractValueType]) -> Result<ContractValueType, Error>;
+   |                                                                                                    ^^^^^^^^^^^^^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+39 | pub trait ContractTrait<ContractValueType>: Any + VMStorageTrait {
+   |                        +++++++++++++++++++
+
+error[E0412]: cannot find type `ContractValueType` in this scope
+  --> src/vm/contract.rs:75:18
+   |
+75 | impl IntoLua for ContractValueType {
+   |                  ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `ContractValueType` in this scope
+   --> src/vm/contract.rs:102:18
+    |
+102 | impl FromLua for ContractValueType {
+    |                  ^^^^^^^^^^^^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `VMType` in this scope
+  --> src/vm/mod.rs:50:30
+   |
+50 |     fn get_vm_type(&self) -> VMType;
+   |                              ^^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Event` in this scope
+  --> src/event/mod.rs:29:32
+   |
+29 |     fn add_event(&self, event: Event);
+   |                                ^^^^^ not found in this scope
+
+error[E0412]: cannot find type `Event` in this scope
+  --> src/event/mod.rs:33:24
+   |
+33 |     events: RwLock<Vec<Event>>,
+   |                        ^^^^^ not found in this scope
+   |
+help: you might be missing a type parameter
+   |
+32 | pub struct EventManager<Event> {
+   |                        +++++++
+
+error[E0412]: cannot find type `Event` in this scope
+  --> src/event/mod.rs:47:32
+   |
+47 |     fn add_event(&self, event: Event) {
+   |                                ^^^^^ not found in this scope
+
+warning: unused imports: `Decode` and `Encode`
+ --> src/crypto/hash.rs:2:15
+  |
+2 |     bincode::{Decode, Encode},
+  |               ^^^^^^  ^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `Decode`, `Encode`, `PublicKey as Secp256k1PublicKey`, and `SecretKey as Secp256k1SecretKey`
+  --> src/crypto/keypair.rs:11:9
+   |
+11 |         SecretKey as Secp256k1SecretKey, PublicKey as Secp256k1PublicKey, Message as Secp256k1Message,
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+16 |     bincode::{Decode, Encode},
+   |               ^^^^^^  ^^^^^^
+
+warning: unused imports: `Decode`, `Deserialize`, `Encode`, and `Serialize`
+ --> src/vm/mod.rs:7:15
+  |
+7 |     bincode::{Encode, Decode},
+  |               ^^^^^^  ^^^^^^
+8 |     serde::{Serialize, Deserialize},
+  |             ^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused imports: `Decode`, `Encode`, and `num::U256`
+ --> src/vm/contract.rs:4:37
+  |
+4 |         structs::{account::Address, num::U256},
+  |                                     ^^^^^^^^^
+5 |     }, anyhow::Error, bincode::{Decode, Encode},
+  |                                 ^^^^^^  ^^^^^^
+
+warning: unused imports: `Decode`, `Encode`, `crate::structs::block::Block`, and `crate::structs::tx::Tx`
+ --> src/net/messages.rs:3:5
+  |
+3 |     crate::structs::tx::Tx,
+  |     ^^^^^^^^^^^^^^^^^^^^^^
+4 |     crate::structs::block::Block,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 |     bincode::{Encode, Decode},
+  |               ^^^^^^  ^^^^^^
+
+warning: unused import: `crate::rpc::RpcTrait`
+ --> src/rpc/routes/ether_rpc.rs:4:5
+  |
+4 |     crate::rpc::RpcTrait,
+  |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Decode`, `Encode`, `crate::currency::Amount`, and `std::collections::HashMap`
+ --> src/event/mod.rs:2:15
+  |
+2 |     bincode::{Encode, Decode},
+  |               ^^^^^^  ^^^^^^
+...
+7 |     crate::currency::Amount,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+8 |     std::collections::HashMap,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0433]: failed to resolve: use of undeclared type `TxVersion`
+  --> src/structs/tx.rs:56:26
+   |
+56 |                 version: TxVersion::V1,
+   |                          ^^^^^^^^^ use of undeclared type `TxVersion`
+
+error[E0433]: failed to resolve: use of undeclared type `TxData`
+  --> src/structs/tx.rs:59:19
+   |
+59 |             data: TxData::Coinbase(TxCoinbaseData {
+   |                   ^^^^^^ use of undeclared type `TxData`
+
+error[E0433]: failed to resolve: use of undeclared type `Address`
+  --> src/structs/account.rs:41:46
+   |
+41 |             PublicKey::Ed25519(pubkey) => Ok(Address::Ed25519(match pubkey.hash(HashAlgorithm::Blake3_256) {
+   |                                              ^^^^^^^ use of undeclared type `Address`
+
+error[E0433]: failed to resolve: use of undeclared type `Address`
+  --> src/structs/account.rs:45:46
+   |
+45 |             PublicKey::EdBlake(pubkey) => Ok(Address::EdBlake(match pubkey.hash(HashAlgorithm::Blake3_256) {
+   |                                              ^^^^^^^ use of undeclared type `Address`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:105:30
+    |
+105 |             Value::Nil => Ok(ContractValueType::None),
+    |                              ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:109:42
+    |
+109 |                         -128..=127 => Ok(ContractValueType::I8(value as i8)),
+    |                                          ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:110:46
+    |
+110 |                         -32768..=32767 => Ok(ContractValueType::I16(value as i16)),
+    |                                              ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:111:56
+    |
+111 |                         -2147483648..=2147483647 => Ok(ContractValueType::I32(value as i32)),
+    |                                                        ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:115:39
+    |
+115 |                         0..=255 => Ok(ContractValueType::U8(value as u8)),
+    |                                       ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:116:41
+    |
+116 |                         0..=65535 => Ok(ContractValueType::U16(value as u16)),
+    |                                         ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:117:46
+    |
+117 |                         0..=4294967295 => Ok(ContractValueType::U32(value as u32)),
+    |                                              ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:121:40
+    |
+121 |             Value::String(value) => Ok(ContractValueType::String(value.to_str()?.to_string())),
+    |                                        ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+   --> src/vm/contract.rs:122:41
+    |
+122 |             Value::Boolean(value) => Ok(ContractValueType::Bool(value)),
+    |                                         ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+  --> src/vm/contract.rs:82:13
+   |
+82 |             ContractValueType::I16(value) => Ok(Value::Integer(value.into())),
+   |             ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+  --> src/vm/contract.rs:83:13
+   |
+83 |             ContractValueType::I32(value) => Ok(Value::Integer(value.into())),
+   |             ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `TxData`
+   --> src/structs/tx.rs:123:13
+    |
+123 |             TxData::Coinbase(data) => write!(f, "TxData::Coinbase({})", data.amount),
+    |             ^^^^^^ use of undeclared type `TxData`
+
+error[E0433]: failed to resolve: use of undeclared type `TxData`
+   --> src/structs/tx.rs:124:13
+    |
+124 |             TxData::Batch(txs) => write!(f, "TxData::Batch({})", txs.len()),
+    |             ^^^^^^ use of undeclared type `TxData`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+  --> src/vm/contract.rs:90:13
+   |
+90 |             ContractValueType::String(value) => Ok(Value::String(lua.create_string(&value.as_bytes())?)),
+   |             ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+  --> src/vm/contract.rs:96:13
+   |
+96 |             ContractValueType::Bool(value) => Ok(Value::Boolean(value)),
+   |             ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `Address`
+  --> src/structs/account.rs:93:13
+   |
+93 |             Address::Ed25519(pubkey) => Ok(Cow::Borrowed(pubkey)),
+   |             ^^^^^^^ use of undeclared type `Address`
+
+error[E0433]: failed to resolve: use of undeclared type `Address`
+  --> src/structs/account.rs:94:13
+   |
+94 |             Address::EdBlake(pubkey) => Ok(Cow::Borrowed(pubkey)),
+   |             ^^^^^^^ use of undeclared type `Address`
+
+error[E0433]: failed to resolve: use of undeclared type `Address`
+   --> src/structs/account.rs:103:13
+    |
+103 |             Address::Ed25519(address) => write!(f, "0x{}", hex::encode(address)),
+    |             ^^^^^^^ use of undeclared type `Address`
+
+error[E0433]: failed to resolve: use of undeclared type `Address`
+   --> src/structs/account.rs:104:13
+    |
+104 |             Address::EdBlake(address) => write!(f, "0x{}", hex::encode(address)),
+    |             ^^^^^^^ use of undeclared type `Address`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+  --> src/vm/contract.rs:78:13
+   |
+78 |             ContractValueType::None => Ok(Value::Nil),
+   |             ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+  --> src/vm/contract.rs:79:13
+   |
+79 |             ContractValueType::U8(value) => Ok(Value::Integer(value.into())),
+   |             ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+  --> src/vm/contract.rs:80:13
+   |
+80 |             ContractValueType::I8(value) => Ok(Value::Integer(value.into())),
+   |             ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+error[E0433]: failed to resolve: use of undeclared type `ContractValueType`
+  --> src/vm/contract.rs:81:13
+   |
+81 |             ContractValueType::U16(value) => Ok(Value::Integer(value.into())),
+   |             ^^^^^^^^^^^^^^^^^ use of undeclared type `ContractValueType`
+
+Some errors have detailed explanations: E0412, E0432, E0433, E0573.
+For more information about an error, try `rustc --explain E0412`.
+warning: `chain` (bin "chain") generated 7 warnings
+error: could not compile `chain` (bin "chain") due to 170 previous errors; 7 warnings emitted

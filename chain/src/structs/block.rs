@@ -23,12 +23,11 @@ pub struct BlockHeader {
 pub struct Block {
     pub header: BlockHeader,
     pub txs: Vec<Tx>,
-    
 }
 
 impl Block {
     #[document(summary = "Create the genesis block", returns = "The genesis block")]
-    pub fn genesis() -> Self {
+    pub fn genesis(hash_algorithm: Option<HashAlgorithm>) -> Self {
         let mut block = Self {
             header: BlockHeader {
                 hash: Hash::null(),
@@ -39,7 +38,7 @@ impl Block {
             },
             txs: vec![],
         };
-        block.header.hash = block.hash(HashAlgorithm::Blake3_256);
+        block.header.hash = block.hash(hash_algorithm.unwrap_or(HashAlgorithm::Blake3_256));
         block.header.config_checksum = block.hash(HashAlgorithm::XXHash3_64);
         block
     }
@@ -47,7 +46,7 @@ impl Block {
     #[document(summary = "Creates a coinbase block", params = {
         "prev_hash": "The previous block hash"
     }, returns = "The coinbase block")]
-    pub fn coinbase(prev_hash: Hash) -> Self {
+    pub fn coinbase(prev_hash: Hash, hash_algorithm: Option<HashAlgorithm>) -> Self {
         let mut block = Self {
             header: BlockHeader {
                 hash: Hash::null(),
@@ -58,7 +57,7 @@ impl Block {
             },
             txs: vec![Tx::coinbase()],
         };
-        block.header.hash = block.hash(HashAlgorithm::Blake3_256);
+        block.header.hash = block.hash(hash_algorithm.unwrap_or(HashAlgorithm::Blake3_256));
         block.header.config_checksum = block.hash(HashAlgorithm::XXHash3_64);
         block
     }
@@ -82,10 +81,10 @@ impl Block {
     }
 
     #[document(summary = "Validates a block", returns = "The result of the validation")]
-    pub fn validate(&self) -> Result<(), Error> {
+    pub fn validate(&self, hash_algorithm: Option<HashAlgorithm>) -> Result<(), Error> {
         self.ensure_first_tx_is_coinbase()?;
         self.ensure_single_coinbase()?;
-        if self.header.hash != self.hash(HashAlgorithm::Blake3_256) {
+        if self.header.hash != self.hash(hash_algorithm.unwrap_or(HashAlgorithm::Blake3_256)) {
             return Err(Error::msg("Block hash does not match calculated hash"));
         }
         Ok(())
@@ -114,7 +113,7 @@ impl std::fmt::Display for Block {
             self.header.nonce, 
             self.header.timestamp, 
             self.header.config_checksum,
-            self.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect::<Vec<_>>().into_iter().map(|hash| format!("0x{}", hash)).collect::<Vec<_>>().join(", ")
+            self.txs.iter().map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect::<Vec<_>>().into_iter().map(|hash| format!("0x{}", hash)).collect::<Vec<_>>().join(", ") // todo: use specified hash algorithm
         )
     }
 }

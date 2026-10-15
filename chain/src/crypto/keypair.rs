@@ -89,7 +89,7 @@ impl<'de> Deserialize<'de> for Signature {
         D: serde::Deserializer<'de>,
     {
         let s = String::deserialize(deserializer)?;
-        Signature::from_bytes(s.as_bytes()).map_err(|e| serde::de::Error::custom(e.to_string()))
+        Signature::from_bytes(s.as_bytes()).map_err(serde::de::Error::custom)
     }
 }
 
@@ -249,7 +249,7 @@ impl PublicKey {
                 match signature {
                     Signature::Ed25519(signature) => {
                         let verifying_key = Ed25519VerifyingKey::from_bytes(pubkey).unwrap();
-                        verifying_key.verify(message, &Ed25519Signature::from_bytes(signature)).map_err(|e| Error::msg(format!("Invalid signature: {}", e)))
+                        verifying_key.verify(message, &Ed25519Signature::from_bytes(signature)).map_err(Error::msg)
                     }
                     _ => Err(Error::msg("Invalid signature")),
                 }
@@ -259,7 +259,7 @@ impl PublicKey {
                 match signature {
                     &Signature::EdBlake(signature) => {
                         let verifying_key = EdBlakePublicKey::from_bytes(pubkey).unwrap();
-                        verifying_key.verify(message, &EdBlakeSignature::from_bytes(&signature)?).map_err(|e| Error::msg(format!("Invalid signature: {}", e)))
+                        verifying_key.verify(message, &EdBlakeSignature::from_bytes(&signature)?).map_err(Error::msg)
                     }
                     _ => Err(Error::msg("Invalid signature")),
                 }

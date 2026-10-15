@@ -12,10 +12,11 @@ use {
     crate::db::DatabaseTrait,
     std::sync::Arc,
     cutedogs::document,
+    std::any::Any,
 };
 
 pub trait ConsensusLayerTrait {
-    fn initialize(&mut self) -> Result<(), Error>;
+    fn initialize(&mut self, data: &[&dyn Any]) -> Result<(), Error>;
     fn create_block(&self) -> Result<Block, Error>;
 }
 
@@ -27,7 +28,7 @@ pub fn main_loop() -> Result<(), Error> {
             &"_accounts".to_string(), 
             &"_contracts".to_string(), 
             &"_transactions".to_string()
-        ]).expect("Failed to initialize VM")
+        ]).expect("Failed to initialize VM") // todo: use specified database paths
     });
     info!("VM initialized");
 
@@ -36,8 +37,8 @@ pub fn main_loop() -> Result<(), Error> {
         let block_height = ctx!(block_height).load(Ordering::Relaxed);
         info!("Mining block height: {}", block_height);
 
-        let mut block = Block::coinbase(ctx!(curr_top).read().unwrap().clone());
-        block.validate()?;
+        let mut block = Block::coinbase(ctx!(curr_top).read().unwrap().clone(), None); // todo: use specified hash algorithm
+        block.validate(None)?; // todo: use specified hash algorithm
 
         ctx!(db).write().unwrap().with_transaction(|tx| {
             let _difficulty = ctx!(difficulty).load(Ordering::Relaxed);
@@ -70,11 +71,11 @@ pub fn main_loop() -> Result<(), Error> {
             Ok(())
         })?;
 
-        ctx!(event_manager).add_event(Event::NewBlock(block.hash(HashAlgorithm::Blake3_256)));
+        ctx!(event_manager).add_event(Event::NewBlock(block.hash(HashAlgorithm::Blake3_256))); // todo: use specified hash algorithm
 
         info!("Block mined, pubkey: {}: {}", ctx!(miner_keypair).read().unwrap().as_ref().expect("Invalid keypair").pubkey().expect("Invalid pubkey"), block);
         ctx!(block_height).store(block_height + 1, Ordering::Relaxed);
 
-        ctx!(mempool).remove_txs(block.txs.iter().skip(1).map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect());
+        ctx!(mempool).remove_txs(block.txs.iter().skip(1).map(|tx| tx.hash(HashAlgorithm::Blake3_256)).collect()); // todo: use specified hash algorithm
     }
 }
